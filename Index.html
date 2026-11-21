@@ -1,0 +1,2995 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SoukZone DZ — سوق زون الجزائر (v27 Clean Merchant Pages + True Return to Shop)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --dz-green: #006233;
+      --dz-green-dark: #004725;
+      --dz-red: #D21034;
+      --dz-orange: #f57c00;
+      --dz-orange-dark: #d96500;
+      --bg-light: #ffffff;
+      --surface-soft: #f6f8f7;
+      --card-bg: #ffffff;
+      --text-dark: #14221b;
+      --text-muted: #55685f;
+      --border-soft: #dce5e0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans Arabic", Arial, sans-serif;
+      background-color: #f4f6f5;
+      color: var(--text-dark);
+      line-height: 1.55;
+      padding-bottom: 84px;
+    }
+
+    /* وضع التاجر المعزول: يخفي الهيدر العام، أزرار التسوق والتجار والجملة والإدارة، والسلة العائمة في كل صفحات التاجر الداخلية */
+    body.merchant-shop-isolated {
+      background-color: #ffffff;
+      padding-bottom: 24px;
+    }
+
+    body.merchant-shop-isolated header,
+    body.merchant-shop-isolated .top-nav-wrap,
+    body.merchant-shop-isolated .round-cart-fab {
+      display: none !important;
+    }
+
+    body.merchant-shop-isolated main {
+      margin-top: 12px;
+    }
+
+    body.merchant-shop-isolated .panel-card {
+      background: #ffffff;
+      border-color: #e4eae7;
+      box-shadow: none;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--dz-green-dark), var(--dz-green) 72%, var(--dz-orange-dark));
+      color: #ffffff;
+      padding: 14px 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+      position: sticky;
+      top: 0;
+      z-index: 220;
+      border-bottom: 3px solid var(--dz-orange);
+    }
+
+    .header-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-emblem {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+      flex-shrink: 0;
+      padding: 2px;
+    }
+
+    .brand-title h1 {
+      font-size: 1.25rem;
+      font-weight: 900;
+      line-height: 1.2;
+    }
+
+    .brand-title p {
+      font-size: 0.76rem;
+      opacity: 0.95;
+    }
+
+    .badge-58 {
+      background: var(--dz-orange);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.45);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+
+    .top-nav-wrap {
+      max-width: 1360px;
+      margin: 12px auto 0;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .page-switch-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .shop-hero-btn {
+      background: linear-gradient(135deg, var(--dz-green), var(--dz-green-dark));
+      color: #ffffff;
+      border: 2px solid var(--dz-orange);
+      border-radius: 15px;
+      padding: 13px 22px;
+      font-weight: 900;
+      font-size: 1.08rem;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(0, 98, 51, 0.24);
+      transition: transform 0.12s ease;
+    }
+
+    .shop-hero-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .shop-hero-btn.active {
+      outline: 3px solid #ffd5a8;
+    }
+
+    .merchants-hero-btn {
+      background: linear-gradient(135deg, var(--dz-orange), var(--dz-orange-dark));
+      color: #ffffff;
+      border: 2px solid var(--dz-green);
+      border-radius: 15px;
+      padding: 13px 20px;
+      font-weight: 900;
+      font-size: 1.02rem;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(245, 124, 0, 0.28);
+      transition: transform 0.12s ease;
+    }
+
+    .merchants-hero-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .merchants-hero-btn.active {
+      outline: 3px solid #b7e4c7;
+    }
+
+    .page-btn {
+      background: #ffffff;
+      color: var(--dz-green-dark);
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-weight: 800;
+      font-size: 0.84rem;
+      cursor: pointer;
+    }
+
+    .page-btn.active {
+      background: var(--dz-green);
+      color: #ffffff;
+      border-color: var(--dz-green);
+    }
+
+    .page-btn.wholesale-btn.active {
+      background: var(--dz-orange-dark);
+      color: #ffffff;
+      border-color: var(--dz-orange-dark);
+    }
+
+    .status-pill {
+      font-size: 0.78rem;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: #fff3e6;
+      color: var(--dz-orange-dark);
+      border: 1px solid #ffd5a8;
+      font-weight: 800;
+    }
+
+    main {
+      max-width: 1360px;
+      margin: 14px auto 0;
+      padding: 0 14px;
+    }
+
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    .sub-panel {
+      display: none;
+    }
+
+    .sub-panel.active {
+      display: block;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .choice-tile {
+      background: #ffffff;
+      border: 2px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+      transition: transform 0.12s ease, border-color 0.15s ease;
+    }
+
+    .choice-tile:hover {
+      transform: translateY(-2px);
+      border-color: var(--dz-orange);
+    }
+
+    .choice-tile .tile-emoji {
+      font-size: 2.1rem;
+      line-height: 1;
+    }
+
+    .choice-tile .tile-title {
+      font-size: 1.05rem;
+      font-weight: 900;
+      color: var(--dz-green-dark);
+    }
+
+    .choice-tile .tile-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .subpage-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 1px dashed var(--border-soft);
+    }
+
+    .controls-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      margin-bottom: 5px;
+      color: var(--dz-green-dark);
+    }
+
+    .field select,
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.9rem;
+      background: #ffffff;
+      color: var(--text-dark);
+      font-family: inherit;
+    }
+
+    .quick-icons-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 6px 2px 14px;
+      scrollbar-width: thin;
+    }
+
+    .icon-cat-btn {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 14px;
+      padding: 8px 12px;
+      min-width: 84px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+      flex-shrink: 0;
+    }
+
+    .icon-cat-btn .cat-emoji {
+      font-size: 1.35rem;
+      line-height: 1.1;
+    }
+
+    .icon-cat-btn .cat-name {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-dark);
+      text-align: center;
+      line-height: 1.25;
+      max-width: 96px;
+    }
+
+    .icon-cat-btn.active {
+      background: linear-gradient(135deg, var(--dz-green), var(--dz-orange));
+      border-color: transparent;
+    }
+
+    .icon-cat-btn.active .cat-name {
+      color: #ffffff;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 12px 0 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .section-header h2 {
+      font-size: 1.15rem;
+      color: var(--dz-green-dark);
+      font-weight: 900;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    @media (max-width: 1120px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 620px) {
+      .grid-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+    }
+
+    .product-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: 15px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .product-img-wrap {
+      position: relative;
+      width: 100%;
+      height: 145px;
+      background: #eaf0ed;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .product-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-badge {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 7px;
+      background: var(--dz-green);
+      color: #ffffff;
+    }
+
+    .product-badge.wholesale {
+      background: var(--dz-orange-dark);
+    }
+
+    .product-body {
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    .product-cat-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--dz-orange-dark);
+    }
+
+    .product-code-tag {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .product-title-link {
+      font-size: 0.92rem;
+      font-weight: 800;
+      line-height: 1.35;
+      color: var(--text-dark);
+      background: none;
+      border: none;
+      text-align: right;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .product-title-link:hover {
+      color: var(--dz-green);
+      text-decoration: underline;
+    }
+
+    .merchant-line {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--dz-green-dark);
+    }
+
+    .stars-display {
+      color: var(--dz-orange);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .product-meta {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .product-footer {
+      padding: 10px 11px;
+      border-top: 1px dashed var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: #fcfefd;
+      flex-wrap: wrap;
+    }
+
+    .price-val {
+      font-size: 0.92rem;
+      font-weight: 900;
+      color: var(--dz-green-dark);
+    }
+
+    .btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 9px;
+      padding: 8px 11px;
+      font-weight: 800;
+      font-size: 0.78rem;
+      transition: transform 0.1s ease, background 0.15s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--dz-green);
+      color: #ffffff;
+    }
+
+    .btn-orange {
+      background: var(--dz-orange);
+      color: #ffffff;
+    }
+
+    .btn-back-green {
+      background: var(--dz-green);
+      color: #ffffff;
+      border: 2px solid var(--dz-green-dark);
+      border-radius: 11px;
+      padding: 9px 16px;
+      font-weight: 900;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 98, 51, 0.22);
+    }
+
+    .btn-back-orange {
+      background: var(--dz-orange);
+      color: #ffffff;
+      border: 2px solid var(--dz-orange-dark);
+      border-radius: 11px;
+      padding: 9px 16px;
+      font-weight: 900;
+      font-size: 0.88rem;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(245, 124, 0, 0.24);
+    }
+
+    .btn-outline {
+      background: #ffffff;
+      color: var(--dz-green-dark);
+      border: 1px solid var(--dz-green);
+    }
+
+    .btn-danger {
+      background: #fdebec;
+      color: #a3122b;
+      border: 1px solid #f5b5be;
+    }
+
+    .btn-ban {
+      background: var(--dz-red);
+      color: #ffffff;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-soft);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .msg-box {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      display: none;
+      font-weight: 700;
+    }
+
+    .msg-success {
+      display: block;
+      background: #e6f4ec;
+      color: #0b4f2c;
+      border: 1px solid #9fd4b8;
+    }
+
+    .msg-error {
+      display: block;
+      background: #fdebec;
+      color: #8b1227;
+      border: 1px solid #f5b5be;
+    }
+
+    .merchant-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+
+    .stat-box {
+      background: #f8fbf9;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .stat-box span {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .stat-box strong {
+      font-size: 1.1rem;
+      color: var(--dz-green-dark);
+      font-weight: 900;
+    }
+
+    .merchant-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      background: #ffffff;
+      flex-wrap: wrap;
+    }
+
+    .merchant-item-row.banned-row {
+      background: #fff5f6;
+      border-color: #f3b5be;
+    }
+
+    .fulfillment-thumb {
+      width: 68px;
+      height: 54px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      flex-shrink: 0;
+    }
+
+    .single-product-card {
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .single-product-img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 1px solid var(--border-soft);
+    }
+
+    .rating-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #fff9f2;
+      border: 1px solid #ffd5a8;
+    }
+
+    .star-pick-btn {
+      background: #ffffff;
+      border: 1px solid #f7c593;
+      color: var(--dz-orange-dark);
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 0.85rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .chat-box {
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 12px;
+      background: #f9fbfa;
+      max-height: 260px;
+      overflow-y: auto;
+      margin-top: 10px;
+    }
+
+    .chat-msg {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #ffffff;
+      border: 1px solid var(--border-soft);
+      margin-bottom: 8px;
+      font-size: 0.84rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .round-cart-fab {
+      position: fixed;
+      bottom: 28px;
+      left: 20px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: var(--dz-green-dark);
+      color: #ffffff;
+      border: 3px solid var(--dz-orange);
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 260;
+    }
+
+    .round-cart-fab.visible-page {
+      display: flex;
+    }
+
+    .round-cart-fab .cart-icon {
+      font-size: 1.35rem;
+      line-height: 1;
+    }
+
+    .round-cart-fab .cart-count-circle {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--dz-orange);
+      color: #ffffff;
+      border: 2px solid #ffffff;
+      font-size: 0.76rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+    }
+
+    .round-cart-fab.flash-red {
+      background: var(--dz-red);
+      border-color: #ffffff;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 22, 16, 0.55);
+      z-index: 300;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .cart-sheet {
+      background: #ffffff;
+      width: 100%;
+      max-width: 640px;
+      max-height: 88vh;
+      overflow-y: auto;
+      border-radius: 22px 22px 0 0;
+      padding: 20px 18px 28px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      border: 1px solid var(--border-soft);
+      background: #f4f7f5;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.92rem;
+    }
+
+    .summary-total {
+      font-size: 1.12rem;
+      font-weight: 900;
+      color: var(--dz-green-dark);
+      border-top: 2px solid var(--border-soft);
+      padding-top: 10px;
+      margin-top: 6px;
+    }
+
+    .order-history-card {
+      border: 1px solid var(--border-soft);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+      background: #fafcfb;
+    }
+
+    .status-tag {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      background: #fff3e6;
+      color: var(--dz-orange-dark);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo-emblem" aria-label="شعار علم الجزائر الدائري — SoukZone DZ">
+          <svg viewBox="0 0 100 100" width="46" height="46" role="img" aria-label="علم الجزائر الدائري">
+            <defs>
+              <clipPath id="dzCircleClip">
+                <circle cx="50" cy="50" r="44" />
+              </clipPath>
+            </defs>
+            <circle cx="50" cy="50" r="48" fill="#004725" />
+            <circle cx="50" cy="50" r="45.5" fill="#ffffff" />
+            <g clip-path="url(#dzCircleClip)">
+              <rect x="0" y="0" width="50" height="100" fill="#006233" />
+              <rect x="50" y="0" width="50" height="100" fill="#ffffff" />
+              <path
+                d="M 65.5 31.5 A 24 24 0 1 0 65.5 68.5 A 19.2 19.2 0 1 1 65.5 31.5 Z"
+                fill="#D21034"
+              />
+              <polygon
+                points="69.5,50 61.5,52.6 61.5,61 56.5,54.2 48.5,56.8 53.5,50 48.5,43.2 56.5,45.8 61.5,39 61.5,47.4"
+                fill="#D21034"
+              />
+            </g>
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#004725" stroke-width="2.5" />
+          </svg>
+        </div>
+        <div class="brand-title">
+          <h1>SoukZone DZ</h1>
+          <p>58 ولاية • واجهة واضحة للتسوق والتجار • حانوت التاجر مستقل وحده</p>
+        </div>
+      </div>
+      <div class="badge-58">58 ولاية • اشتراك 1500 د.ج/شهر • الشهر الأول مجاني</div>
+    </div>
+  </header>
+
+  <div class="top-nav-wrap">
+    <div class="page-switch-group">
+      <button type="button" class="shop-hero-btn active" data-page="retail" onclick="switchPage('retail')">🛍️ صفحة التسوق</button>
+      <button type="button" class="merchants-hero-btn" data-page="merchants-hub" onclick="openMerchantsHub()">👥 التجار</button>
+      <button type="button" class="page-btn wholesale-btn" data-page="wholesale" onclick="switchPage('wholesale')">📦 صفحة الجملة</button>
+      <button type="button" class="page-btn" data-page="orders" onclick="switchPage('orders')">📋 صفحة الطلبيات</button>
+      <button type="button" class="page-btn" data-page="admin-fulfillment" onclick="switchPage('admin-fulfillment')">🔐 صفحة الإدارة</button>
+    </div>
+    <span id="dbStatus" class="status-pill">جاري الاتصال...</span>
+  </div>
+
+  <main>
+    <!-- 1. صفحة التسوق -->
+    <section id="page-retail" class="view-section active">
+      <div class="controls-card">
+        <div class="field">
+          <label for="wilayaSelect">الولاية (58 ولاية)</label>
+          <select id="wilayaSelect"></select>
+        </div>
+        <div class="field">
+          <label for="searchInput">ابحث في صفحة التسوق</label>
+          <input id="searchInput" type="search" placeholder="مثال: مستلزمات القطط، غيار السيارات، PRD-102..." />
+        </div>
+      </div>
+
+      <div class="quick-icons-bar" id="categoriesStrip">
+        <button type="button" class="icon-cat-btn active" data-cat="all" onclick="selectCategory('all')">
+          <span class="cat-emoji">🗂️</span>
+          <span class="cat-name">الكل</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="مستلزمات وأكل الحيوانات" onclick="selectCategory('مستلزمات وأكل الحيوانات')">
+          <span class="cat-emoji">🐱</span>
+          <span class="cat-name">مستلزمات وأكل الحيوانات</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="غيار السيارات" onclick="selectCategory('غيار السيارات')">
+          <span class="cat-emoji">🔧</span>
+          <span class="cat-name">غيار السيارات</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="أواني ومستلزمات الطبخ والمطبخ" onclick="selectCategory('أواني ومستلزمات الطبخ والمطبخ')">
+          <span class="cat-emoji">🍳</span>
+          <span class="cat-name">أواني الطبخ والمطبخ</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="الأحذية" onclick="selectCategory('الأحذية')">
+          <span class="cat-emoji">👞</span>
+          <span class="cat-name">الأحذية</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="ملابس الرجال" onclick="selectCategory('ملابس الرجال')">
+          <span class="cat-emoji">👔</span>
+          <span class="cat-name">ملابس الرجال</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="ملابس النساء" onclick="selectCategory('ملابس النساء')">
+          <span class="cat-emoji">👗</span>
+          <span class="cat-name">ملابس النساء</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="البواخر ومستلزمات البحر والسفن" onclick="selectCategory('البواخر ومستلزمات البحر والسفن')">
+          <span class="cat-emoji">⚓</span>
+          <span class="cat-name">البواخر ومستلزمات البحر</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="الإلكترونيات والهواتف" onclick="selectCategory('الإلكترونيات والهواتف')">
+          <span class="cat-emoji">📱</span>
+          <span class="cat-name">الإلكترونيات</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="مواد التنظيف والمنظفات" onclick="selectCategory('مواد التنظيف والمنظفات')">
+          <span class="cat-emoji">🧴</span>
+          <span class="cat-name">مواد التنظيف</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="الأثاث والديكور المنزلي" onclick="selectCategory('الأثاث والديكور المنزلي')">
+          <span class="cat-emoji">🛋️</span>
+          <span class="cat-name">الأثاث والديكور</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="معدات البناء والكهرباء" onclick="selectCategory('معدات البناء والكهرباء')">
+          <span class="cat-emoji">⚡</span>
+          <span class="cat-name">البناء والكهرباء</span>
+        </button>
+        <button type="button" class="icon-cat-btn" data-cat="العطور ومستحضرات العناية" onclick="selectCategory('العطور ومستحضرات العناية')">
+          <span class="cat-emoji">✨</span>
+          <span class="cat-name">العطور والعناية</span>
+        </button>
+      </div>
+
+      <div class="section-header">
+        <h2 id="retailSectionTitle">صفحة التسوق (4 منتجات في كل صف)</h2>
+        <span id="retailCountLabel" class="product-meta"></span>
+      </div>
+      <div id="retailGrid" class="grid-4"></div>
+    </section>
+
+    <!-- 2. صفحة الجملة -->
+    <section id="page-wholesale" class="view-section">
+      <div class="section-header">
+        <h2>صفحة الجملة للتجار (سعر اختياري أو تفاوض مباشر بالرسائل)</h2>
+        <span id="wholesaleCountLabel" class="product-meta"></span>
+      </div>
+      <div id="wholesaleGrid" class="grid-4"></div>
+
+      <div class="panel-card" style="margin-top: 20px;">
+        <h3>💬 مراسلة وتفاوض الجملة المباشر</h3>
+        <form id="wholesaleChatForm" class="form-grid">
+          <div class="field">
+            <label for="chatSenderName">اسمك / محلك</label>
+            <input id="chatSenderName" type="text" required placeholder="مثال: محل البليدة للجملة" />
+          </div>
+          <div class="field">
+            <label for="chatTargetOffer">المنتج أو التاجر</label>
+            <select id="chatTargetOffer"></select>
+          </div>
+          <div class="field">
+            <label for="chatMessageText">الرسالة / العرض / الكمية المطلوبة</label>
+            <input id="chatMessageText" type="text" required placeholder="مثال: شحال تحسب 20 حبة؟" />
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button type="submit" class="btn btn-orange" style="width: 100%; padding: 10px;">إرسال رسالة التفاوض</button>
+          </div>
+        </form>
+        <div id="wholesaleChatList" class="chat-box"></div>
+      </div>
+    </section>
+
+    <!-- 3. بوابة التجار وحانوت التاجر المعزول -->
+    <section id="page-merchants-hub" class="view-section">
+      <!-- اختيار تجزئة أو جملة -->
+      <div id="merchant-step-choice" class="sub-panel active">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <h2>👥 التجار — اختر نوع التاجر</h2>
+            <button type="button" class="btn-back-green" onclick="switchPage('retail')">⬅️ رجوع لصفحة التسوق</button>
+          </div>
+          <p class="product-meta">اضغط على «تجار التجزئة» أو «تجار الجملة» للانتقال إلى صفحته وكلمة السر.</p>
+
+          <div class="choice-grid">
+            <button type="button" class="choice-tile" onclick="openMerchantLoginStep('retail')">
+              <span class="tile-emoji">🏪</span>
+              <span class="tile-title">تجار التجزئة</span>
+              <span class="tile-sub">صفحة تاجر التجزئة + كلمة السر + حانوته وروابط منتجاته</span>
+            </button>
+
+            <button type="button" class="choice-tile" onclick="openMerchantLoginStep('wholesale')">
+              <span class="tile-emoji">🏭</span>
+              <span class="tile-title">تجار الجملة</span>
+              <span class="tile-sub">صفحة تاجر الجملة + كلمة السر + حانوته وروابط عروضه</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة التاجر المختار مع المودباس والدخول -->
+      <div id="merchant-step-login" class="sub-panel">
+        <div class="panel-card" style="max-width: 560px; margin: 12px auto;">
+          <div class="subpage-header-bar">
+            <h2 id="mLoginHeading">دخول التاجر</h2>
+            <button type="button" class="btn-back-orange" onclick="openMerchantsHub()">⬅️ رجوع</button>
+          </div>
+
+          <form id="merchantGateForm" class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="field">
+              <label for="mGateEmail">البريد الإلكتروني</label>
+              <input id="mGateEmail" type="email" required placeholder="merchant@soukzone.dz" />
+            </div>
+            <div class="field">
+              <label for="mGatePass">كلمة السر (الافتراضية: 123)</label>
+              <input id="mGatePass" type="password" required placeholder="123" />
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="submit" class="btn btn-primary" style="flex:1;padding:11px;">🔑 دخول إلى حانوتي</button>
+              <button type="button" class="btn btn-orange" style="padding:11px;" onclick="directBypassMerchantGate()">⚡ دخول سريع</button>
+              <button type="button" class="btn btn-outline" style="padding:11px;" onclick="gateSendRecovery()">✉️ نسيت كلمة السر</button>
+            </div>
+          </form>
+          <div id="mGateMsg" class="msg-box"></div>
+        </div>
+      </div>
+
+      <!-- حانوت التاجر المعزول تماماً -->
+      <div id="merchant-step-home" class="sub-panel">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <div>
+              <h2 id="mHomeTitle">حانوت التاجر</h2>
+              <p class="product-meta" id="mHomeSub"></p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button type="button" class="btn-back-orange" onclick="openMerchantLoginStep(activeMerchantRole)">⬅️ رجوع</button>
+              <button type="button" class="btn-back-green" onclick="exitIsolatedMerchantShop()">🚪 خروج من الحانوت</button>
+            </div>
+          </div>
+
+          <div class="merchant-stats-grid">
+            <div class="stat-box">
+              <span>الاشتراك</span>
+              <strong id="mStatPlan">الشهر الأول مجاني</strong>
+            </div>
+            <div class="stat-box">
+              <span>منتجاتي المعروضة</span>
+              <strong id="mStatActiveCount">0</strong>
+            </div>
+            <div class="stat-box">
+              <span>الكميات المباعة</span>
+              <strong id="mStatSoldQty">0</strong>
+            </div>
+            <div class="stat-box">
+              <span>صافي مبيعاتي</span>
+              <strong id="mStatEarnings">0 د.ج</strong>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            <button type="button" class="btn btn-outline" onclick="activateFirstMonthFree(activeMerchantRole)">🎁 شهر أول مجاني</button>
+            <button type="button" class="btn btn-orange" onclick="payMonthlySubscription(activeMerchantRole)">💳 تفعيل الاشتراك الشهري</button>
+          </div>
+
+          <div class="choice-grid">
+            <button type="button" class="choice-tile" onclick="openMerchantSubpage('add')">
+              <span class="tile-emoji">➕</span>
+              <span class="tile-title">صفحة إضافة منتج</span>
+              <span class="tile-sub">أضف منتجاً جديداً في حانوتك</span>
+            </button>
+
+            <button type="button" class="choice-tile" onclick="openMerchantSubpage('products')">
+              <span class="tile-emoji">🔗</span>
+              <span class="tile-title">صفحة منتجاتي وروابطها</span>
+              <span class="tile-sub">تعديل، مخزون، ونسخ رابط كل منتوج للفيسبوك/تيك توك/إنستغرام</span>
+            </button>
+
+            <button type="button" class="choice-tile" onclick="openMerchantSubpage('sales')">
+              <span class="tile-emoji">📸</span>
+              <span class="tile-title">صفحة مبيعاتي</span>
+              <span class="tile-sub">المنتجات المباعة بالتصويرة والرمز والزبون</span>
+            </button>
+
+            <button type="button" class="choice-tile" onclick="openMerchantSubpage('messages')">
+              <span class="tile-emoji">💬</span>
+              <span class="tile-title">صفحة رسائلي</span>
+              <span class="tile-sub">رسائل التفاوض الواردة لحانوتي</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة فرعية للتاجر: إضافة منتج -->
+      <div id="merchant-sub-add" class="sub-panel">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <h2>➕ صفحة إضافة منتج جديد</h2>
+            <button type="button" class="btn-back-green" onclick="openMerchantSubpage('home')">⬅️ رجوع للحانوت</button>
+          </div>
+
+          <form id="unifiedAddProductForm">
+            <div class="form-grid">
+              <div class="field">
+                <label for="mProdCode">رمز المنتوج (تلقائي إذا تُرك فارغاً)</label>
+                <input id="mProdCode" type="text" placeholder="يتولّد تلقائياً" />
+              </div>
+              <div class="field">
+                <label for="mProdTitle">اسم المنتوج *</label>
+                <input id="mProdTitle" type="text" required placeholder="اسم المنتوج" />
+              </div>
+              <div class="field">
+                <label id="mProdPriceLabel" for="mProdPrice">السعر (د.ج) *</label>
+                <input id="mProdPrice" type="number" min="0" placeholder="مثال: 2200" />
+              </div>
+              <div class="field">
+                <label for="mProdStock">الكمية المتوفرة *</label>
+                <input id="mProdStock" type="number" min="1" value="30" required />
+              </div>
+              <div class="field">
+                <label for="mProdWilaya">الولاية *</label>
+                <select id="mProdWilaya"></select>
+              </div>
+              <div id="mFulfillmentField" class="field">
+                <label for="mProdFulfillment">خاصية هذا المنتوج</label>
+                <select id="mProdFulfillment">
+                  <option value="none">عادي (بدون تغليف من الإدارة)</option>
+                  <option value="pack_only">تفعيل خاصية التغليف فقط</option>
+                  <option value="storage_pack_delivery">تفعيل التخزين والتغليف والتوصيل</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:flex-end;">
+                <button type="submit" class="btn btn-orange" style="width:100%;padding:10px;">إضافة المنتوج</button>
+              </div>
+            </div>
+            <div id="mAddMsg" class="msg-box"></div>
+          </form>
+        </div>
+      </div>
+
+      <!-- صفحة فرعية للتاجر: منتجاتي وروابطها المباشرة (للتاجر فقط) -->
+      <div id="merchant-sub-products" class="sub-panel">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <h2>🔗 صفحة منتجاتي وروابطها المباشرة (للتاجر فقط)</h2>
+            <button type="button" class="btn-back-green" onclick="openMerchantSubpage('home')">⬅️ رجوع للحانوت</button>
+          </div>
+          <p class="product-meta" style="margin-bottom:10px;">انسخ رابط أي منتوج وضعه في الفيسبوك أو إنستغرام أو تيك توك باش الزبون يدخل مباشرة لهذاك المنتوج.</p>
+          <div id="mProductsList"></div>
+        </div>
+      </div>
+
+      <!-- صفحة فرعية للتاجر: مبيعاتي -->
+      <div id="merchant-sub-sales" class="sub-panel">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <h2>📸 صفحة مبيعاتي بالتصويرة</h2>
+            <button type="button" class="btn-back-green" onclick="openMerchantSubpage('home')">⬅️ رجوع للحانوت</button>
+          </div>
+          <div id="mSalesList"></div>
+        </div>
+      </div>
+
+      <!-- صفحة فرعية للتاجر: رسائلي -->
+      <div id="merchant-sub-messages" class="sub-panel">
+        <div class="panel-card">
+          <div class="subpage-header-bar">
+            <h2>💬 صفحة رسائلي</h2>
+            <button type="button" class="btn-back-green" onclick="openMerchantSubpage('home')">⬅️ رجوع للحانوت</button>
+          </div>
+          <div id="mMessagesList" class="chat-box"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. صفحة الإدارة -->
+    <section id="page-admin-fulfillment" class="view-section">
+      <div id="adminLockPanel" class="panel-card" style="max-width: 480px; margin: 24px auto;">
+        <div class="subpage-header-bar">
+          <h2>🔐 دخول الإدارة</h2>
+          <button type="button" class="btn-back-green" onclick="switchPage('retail')">⬅️ رجوع</button>
+        </div>
+        <form id="adminUnlockForm" class="form-grid" style="grid-template-columns: 1fr;">
+          <div class="field">
+            <label for="adminPassInput">كلمة السر</label>
+            <input id="adminPassInput" type="password" required placeholder="أدخل كلمة السر..." />
+          </div>
+          <button type="submit" class="btn btn-primary" style="padding: 11px;">فتح لوحة الإدارة</button>
+        </form>
+        <div id="adminLockMsg" class="msg-box"></div>
+      </div>
+
+      <div id="adminUnlockedWorkspace" style="display: none;">
+        <div id="admin-sub-home" class="sub-panel active">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <div>
+                <h2>⚙️ لوحة الإدارة — اختر القسم لفتحه في صفحة مستقلة</h2>
+                <p class="product-meta">كل أيقونة تفتح صفحة وحدها، ومن داخلها زر «رجوع» واضح.</p>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button type="button" class="btn-back-green" onclick="switchPage('retail')">⬅️ رجوع للتسوق</button>
+                <button type="button" class="btn btn-ban" onclick="lockAdminPanel()">🔒 قفل الإدارة</button>
+              </div>
+            </div>
+
+            <div class="merchant-stats-grid">
+              <div class="stat-box">
+                <span>إجمالي الاشتراكات</span>
+                <strong id="adminSubsRevenue">0 د.ج</strong>
+              </div>
+              <div class="stat-box">
+                <span>إجمالي نسبة 5%</span>
+                <strong id="adminFivePctRevenue">0 د.ج</strong>
+              </div>
+              <div class="stat-box">
+                <span>طلبيات التغليف بانتظار التنفيذ</span>
+                <strong id="adminPendingPackCount">0</strong>
+              </div>
+              <div class="stat-box">
+                <span>طلبيات تم تغليفها</span>
+                <strong id="adminShippedCount">0</strong>
+              </div>
+            </div>
+
+            <div class="choice-grid">
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('fulfillment')">
+                <span class="tile-emoji">📦</span>
+                <span class="tile-title">صفحة التغليف والتوصيل</span>
+                <span class="tile-sub">المنتجات المفعّلة بالتصويرة والرمز واسم ولقب الزبون</span>
+              </button>
+
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('retail-merchants')">
+                <span class="tile-emoji">🏪</span>
+                <span class="tile-title">صفحة تجار التجزئة</span>
+                <span class="tile-sub">إدارة تجار التجزئة واشتراك 1500 د.ج</span>
+              </button>
+
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('wholesale-merchants')">
+                <span class="tile-emoji">🏭</span>
+                <span class="tile-title">صفحة تجار الجملة</span>
+                <span class="tile-sub">إدارة تجار الجملة وحوانيتهم</span>
+              </button>
+
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('products')">
+                <span class="tile-emoji">🛒</span>
+                <span class="tile-title">صفحة جميع المنتجات</span>
+                <span class="tile-sub">إضافة، تعديل، حذف، ونسخ روابط المنتجات</span>
+              </button>
+
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('chats')">
+                <span class="tile-emoji">💬</span>
+                <span class="tile-title">صفحة رسائل التفاوض</span>
+                <span class="tile-sub">رسائل الجملة وطلبات الاستعادة</span>
+              </button>
+
+              <button type="button" class="choice-tile" onclick="openAdminSubpage('settings')">
+                <span class="tile-emoji">⚙️</span>
+                <span class="tile-title">صفحة الإعدادات</span>
+                <span class="tile-sub">كلمة السر، بيانات التجار، النسخ الاحتياطي</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="admin-sub-fulfillment" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>📦 صفحة التغليف والتوصيل</h2>
+              <button type="button" class="btn-back-green" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+            <div id="fulfillmentQueueList"></div>
+          </div>
+        </div>
+
+        <div id="admin-sub-retail-merchants" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>🏪 صفحة تجار التجزئة</h2>
+              <button type="button" class="btn-back-orange" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+            <div id="adminRetailMerchantsList"></div>
+          </div>
+        </div>
+
+        <div id="admin-sub-wholesale-merchants" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>🏭 صفحة تجار الجملة</h2>
+              <button type="button" class="btn-back-orange" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+            <div id="adminWholesaleMerchantsList"></div>
+          </div>
+        </div>
+
+        <div id="admin-sub-products" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>🛒 صفحة جميع المنتجات</h2>
+              <button type="button" class="btn-back-green" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+
+            <form id="adminAddProductForm" style="margin-bottom:16px;padding:14px;border-radius:12px;background:#fffaf4;border:1px solid #ffd5a8;">
+              <h3 style="color:var(--dz-orange-dark);font-size:0.98rem;">➕ إضافة منتج أو عرض جملة مباشرة من الإدارة</h3>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="admProdCode">الرمز (تلقائي)</label>
+                  <input id="admProdCode" type="text" placeholder="يتولّد تلقائياً مثل ADM-3005" />
+                </div>
+                <div class="field">
+                  <label for="admProdTitle">اسم المنتج *</label>
+                  <input id="admProdTitle" type="text" required placeholder="اسم المنتج" />
+                </div>
+                <div class="field">
+                  <label for="admProdDept">القسم *</label>
+                  <select id="admProdDept">
+                    <option value="مستلزمات وأكل الحيوانات">مستلزمات وأكل الحيوانات</option>
+                    <option value="غيار السيارات">غيار السيارات</option>
+                    <option value="أواني ومستلزمات الطبخ والمطبخ">أواني ومستلزمات الطبخ والمطبخ</option>
+                    <option value="الأحذية">الأحذية</option>
+                    <option value="ملابس الرجال">ملابس الرجال</option>
+                    <option value="ملابس النساء">ملابس النساء</option>
+                    <option value="البواخر ومستلزمات البحر والسفن">البواخر ومستلزمات البحر والسفن</option>
+                    <option value="الإلكترونيات والهواتف">الإلكترونيات والهواتف</option>
+                    <option value="مواد التنظيف والمنظفات">مواد التنظيف والمنظفات</option>
+                    <option value="الأثاث والديكور المنزلي">الأثاث والديكور المنزلي</option>
+                    <option value="معدات البناء والكهرباء">معدات البناء والكهرباء</option>
+                    <option value="العطور ومستحضرات العناية">العطور ومستحضرات العناية</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="admProdChannel">القناة *</label>
+                  <select id="admProdChannel">
+                    <option value="retail">تسوق / تجزئة (B2C)</option>
+                    <option value="wholesale">جملة (B2B)</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="admProdPrice">السعر (د.ج — 0 للتفاوض)</label>
+                  <input id="admProdPrice" type="number" min="0" value="2500" />
+                </div>
+                <div class="field">
+                  <label for="admProdStock">الكمية *</label>
+                  <input id="admProdStock" type="number" min="1" value="50" required />
+                </div>
+                <div class="field">
+                  <label for="admProdMerchant">اسم الحانوت / التاجر *</label>
+                  <input id="admProdMerchant" type="text" value="إدارة SoukZone" required />
+                </div>
+                <div class="field">
+                  <label for="admProdWilaya">الولاية *</label>
+                  <select id="admProdWilaya"></select>
+                </div>
+                <div class="field">
+                  <label for="admProdFulfillment">خاصية هذا المنتوج</label>
+                  <select id="admProdFulfillment">
+                    <option value="none">عادي (بدون تغليف من الإدارة)</option>
+                    <option value="pack_only">تفعيل خاصية التغليف فقط</option>
+                    <option value="storage_pack_delivery">تفعيل التخزين والتغليف والتوصيل</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                  <button type="submit" class="btn btn-orange" style="width:100%;padding:10px;">إضافة المنتج</button>
+                </div>
+              </div>
+            </form>
+
+            <div id="adminAllProductsList"></div>
+          </div>
+        </div>
+
+        <div id="admin-sub-chats" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>💬 صفحة رسائل التفاوض وطلبات الاستعادة</h2>
+              <button type="button" class="btn-back-orange" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+            <div id="adminChatModerationList"></div>
+          </div>
+        </div>
+
+        <div id="admin-sub-settings" class="sub-panel">
+          <div class="panel-card">
+            <div class="subpage-header-bar">
+              <h2>⚙️ صفحة الإعدادات وإضافة التجار</h2>
+              <button type="button" class="btn-back-green" onclick="openAdminSubpage('home')">⬅️ رجوع</button>
+            </div>
+
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+              <button type="button" class="btn btn-outline" onclick="toggleAdminCredsInspector()">👁️ إظهار/إخفاء بيانات التجار والهاتف</button>
+              <button type="button" class="btn btn-outline" onclick="changeAdminPasscode()">🔑 تغيير كلمة سر الإدارة</button>
+              <button type="button" class="btn btn-outline" onclick="exportBackupJson()">⬇️ تصدير نسخة احتياطية</button>
+              <label class="btn btn-outline" style="cursor:pointer;">
+                ⬆️ استعادة نسخة
+                <input type="file" accept=".json" style="display:none;" onchange="importBackupJson(event)" />
+              </label>
+              <button type="button" class="btn btn-danger" onclick="resetDemoData()">🔄 إعادة ضبط</button>
+            </div>
+
+            <form id="adminAddMerchantForm" style="padding:14px;border-radius:12px;background:#f8fbf9;border:1px solid var(--border-soft);">
+              <h3 style="color:var(--dz-green-dark);font-size:0.98rem;">➕ إضافة تاجر جديد أو حظره</h3>
+              <div class="form-grid">
+                <div class="field">
+                  <label for="admNewMerchantName">اسم التاجر / الحانوت *</label>
+                  <input id="admNewMerchantName" type="text" required placeholder="مثال: محل النور" />
+                </div>
+                <div class="field">
+                  <label for="admNewMerchantEmail">البريد الإلكتروني *</label>
+                  <input id="admNewMerchantEmail" type="email" required placeholder="noor@example.com" />
+                </div>
+                <div class="field">
+                  <label for="admNewMerchantPassword">كلمة السر *</label>
+                  <input id="admNewMerchantPassword" type="text" required placeholder="123" />
+                </div>
+                <div class="field">
+                  <label for="admNewMerchantPhone">رقم الهاتف</label>
+                  <input id="admNewMerchantPhone" type="tel" placeholder="0550 00 00 00" />
+                </div>
+                <div class="field">
+                  <label for="admNewMerchantType">النوع *</label>
+                  <select id="admNewMerchantType">
+                    <option value="retail">تاجر تجزئة (1500 د.ج/شهر)</option>
+                    <option value="wholesale">تاجر جملة</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="admNewMerchantStatus">حالة الدخول *</label>
+                  <select id="admNewMerchantStatus">
+                    <option value="allowed">مسموح له بالدخول</option>
+                    <option value="banned">محظور / ممنوع من الدخول</option>
+                  </select>
+                </div>
+                <div style="display:flex;align-items:flex-end;">
+                  <button type="submit" class="btn btn-primary" style="width:100%;padding:10px;">حفظ التاجر</button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. صفحة المنتوج المباشرة -->
+    <section id="page-single-product" class="view-section">
+      <div style="margin-bottom: 12px;">
+        <button type="button" class="btn-back-green" onclick="returnFromSingleProduct()">⬅️ رجوع لصفحة التسوق</button>
+      </div>
+      <div id="singleProductContainer"></div>
+    </section>
+
+    <!-- 6. صفحة الطلبيات والتقييم -->
+    <section id="page-orders" class="view-section">
+      <div class="panel-card">
+        <div class="subpage-header-bar">
+          <h2>📋 تتبع الطلبيات وتقييم التاجر بالنجوم</h2>
+          <button type="button" class="btn-back-orange" onclick="switchPage('retail')">⬅️ رجوع</button>
+        </div>
+        <div class="form-grid" style="align-items: end;">
+          <div class="field">
+            <label for="trackPhoneInput">رقم الهاتف</label>
+            <input id="trackPhoneInput" type="tel" placeholder="0550 00 00 00" />
+          </div>
+          <div>
+            <button type="button" class="btn btn-primary" onclick="loadOrderHistory()">بحث عن الطلبيات</button>
+          </div>
+        </div>
+        <div id="ordersList" style="margin-top: 16px;"></div>
+      </div>
+    </section>
+  </main>
+
+  <button
+    type="button"
+    id="roundCartFab"
+    class="round-cart-fab visible-page"
+    aria-label="سلة المشتريات"
+    onclick="openCartModal()"
+  >
+    <span class="cart-icon">🛒</span>
+    <span id="roundCartCount" class="cart-count-circle">0</span>
+  </button>
+
+  <div id="cartModal" class="modal-backdrop" onclick="closeCartOnBackdrop(event)">
+    <div class="cart-sheet">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2>🛒 سلة المشتريات</h2>
+        <button type="button" class="btn-back-orange" onclick="closeCartModal()">⬅️ رجوع / إغلاق</button>
+      </div>
+
+      <div id="cartItemsContainer"></div>
+
+      <div id="checkoutSection" style="margin-top: 14px;">
+        <div class="form-grid">
+          <div class="field">
+            <label for="checkoutName">الاسم واللقب الكامل *</label>
+            <input id="checkoutName" type="text" required placeholder="مثال: عبد المالك بن علي" />
+          </div>
+          <div class="field">
+            <label for="checkoutPhone">رقم الهاتف *</label>
+            <input id="checkoutPhone" type="tel" required placeholder="05XX XX XX XX" />
+          </div>
+          <div class="field">
+            <label for="checkoutWilaya">الولاية (58 ولاية) *</label>
+            <select id="checkoutWilaya" onchange="renderCart()"></select>
+          </div>
+          <div class="field">
+            <label for="deliveryType">طريقة التوصيل *</label>
+            <select id="deliveryType" onchange="renderCart()">
+              <option value="desk">مكتب شركة الشحن (Stop Desk)</option>
+              <option value="home">توصيل إلى المنزل / المحل</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-top: 14px; background: #f4f7f5; padding: 12px; border-radius: 12px;">
+          <div class="summary-row">
+            <span>مجموع المنتجات:</span>
+            <strong id="subTotalText">0 د.ج</strong>
+          </div>
+          <div class="summary-row">
+            <span>التوصيل:</span>
+            <strong id="shippingText">0 د.ج</strong>
+          </div>
+          <div class="summary-row summary-total">
+            <span>الإجمالي للدفع عند الاستلام:</span>
+            <span id="grandTotalText">0 د.ج</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-orange" style="width: 100%; margin-top: 14px; padding: 12px; font-size: 1rem;" onclick="submitCartOrder()">
+          ✅ تأكيد الطلبية
+        </button>
+        <div id="checkoutMsg" class="msg-box"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://ixchyskffmcowdpkafsh.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kM8EUVcmt1GdX2uHzYPWbg_505SA51g";
+    const RETAIL_FEE_DZD = 1500;
+    const WHOLESALE_FEE_DZD = 3000;
+    const FULFILLMENT_PCT = 0.05;
+    const DEFAULT_ADMIN_PASSCODE = "2026";
+
+    const FULFILLMENT_LABELS = {
+      none: "عادي (بدون تغليف من الإدارة)",
+      pack_only: "تفعيل خاصية التغليف فقط",
+      storage_pack_delivery: "تفعيل التخزين والتغليف والتوصيل"
+    };
+
+    const WILAYAS_58 = [
+      "01 - أدرار", "02 - الشلف", "03 - الأغواط", "04 - أم البواقي", "05 - باتنة",
+      "06 - بجاية", "07 - بسكرة", "08 - بشار", "09 - البليدة", "10 - البويرة",
+      "11 - تمنراست", "12 - تبسة", "13 - تلمسان", "14 - تيارت", "15 - تيزي وزو",
+      "16 - الجزائر", "17 - الجلفة", "18 - جيجل", "19 - سطيف", "20 - سعيدة",
+      "21 - سكيكدة", "22 - سيدي بلعباس", "23 - عنابة", "24 - قالمة", "25 - قسنطينة",
+      "26 - المدية", "27 - مستغانم", "28 - المسيلة", "29 - معسكر", "30 - ورقلة",
+      "31 - وهران", "32 - البيض", "33 - إليزي", "34 - برج بوعريريج", "35 - بومرداس",
+      "36 - الطارف", "37 - تندوف", "38 - تيسمسيلت", "39 - الوادي", "40 - خنشلة",
+      "41 - سوق أهراس", "42 - تيبازة", "43 - ميلة", "44 - عين الدفلى", "45 - النعامة",
+      "46 - عين تموشنت", "47 - غرداية", "48 - غيليزان", "49 - تيميمون", "50 - برج باجي مختار",
+      "51 - أولاد جلال", "52 - بني عباس", "53 - إن صالح", "54 - إن قزام", "55 - تقرت",
+      "56 - جانت", "57 - المغير", "58 - المنيعة"
+    ];
+
+    function makeThumb(label, sub, c1, c2) {
+      return "data:image/svg+xml;utf8," + encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="220" viewBox="0 0 400 220">
+          <defs>
+            <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="${c1}"/>
+              <stop offset="100%" stop-color="${c2}"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="220" fill="url(#bg)"/>
+          <circle cx="200" cy="84" r="34" fill="#ffffff" opacity="0.22"/>
+          <text x="200" y="91" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#ffffff" text-anchor="middle">${label}</text>
+          <text x="200" y="130" font-family="Arial, sans-serif" font-size="13" fill="#fff7ed" text-anchor="middle">${sub}</text>
+        </svg>`
+      );
+    }
+
+    function generateAutoCode(prefix = "PRD") {
+      const n = Math.floor(1000 + Math.random() * 9000);
+      return `${prefix}-${n}`;
+    }
+
+    function getDirectProductUrl(productId) {
+      const base = `${window.location.origin}${window.location.pathname}`;
+      return `${base}?product=${encodeURIComponent(String(productId))}`;
+    }
+
+    function copyProductDirectLink(productId) {
+      const url = getDirectProductUrl(productId);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).catch(() => {});
+      }
+      prompt("رابط المنتوج المباشر (انسخه وضعه في الفيسبوك أو إنستغرام أو تيك توك):", url);
+    }
+
+    const INITIAL_PRODUCTS = [
+      { id: "p-101", code: "PRD-101", title: "غيار السيارات — فلتر زيت وبواجي أصلية", department: "غيار السيارات", channel: "retail", category: "B2C", price_dzd: 3800, stock_qty: 100, min_qty: 1, merchant: "متجر التاجر المستقل", stars: 4.9, wilaya: "16 - الجزائر", fulfillment_mode: "storage_pack_delivery", thumb: makeThumb("غيار السيارات", "PRD-101", "#004725", "#d96500") },
+      { id: "p-102", code: "PRD-102", title: "مستلزمات وأكل الحيوانات — طعام رطب للقطط وعاء مزدوج", department: "مستلزمات وأكل الحيوانات", channel: "retail", category: "B2C", price_dzd: 2100, stock_qty: 120, min_qty: 1, merchant: "متجر التاجر المستقل", stars: 5.0, wilaya: "16 - الجزائر", fulfillment_mode: "pack_only", thumb: makeThumb("مستلزمات القطط", "PRD-102", "#006233", "#f57c00") },
+      { id: "p-103", code: "PRD-103", title: "أواني ومستلزمات الطبخ والمطبخ — طقم قدور ستانلس", department: "أواني ومستلزمات الطبخ والمطبخ", channel: "retail", category: "B2C", price_dzd: 8900, stock_qty: 50, min_qty: 1, merchant: "متجر التاجر المستقل", stars: 4.8, wilaya: "19 - سطيف", fulfillment_mode: "none", thumb: makeThumb("أواني الطبخ", "PRD-103", "#006233", "#004725") },
+      { id: "p-104", code: "PRD-104", title: "البواخر ومستلزمات البحر والسفن — سترة نجاة وحبل بحري", department: "البواخر ومستلزمات البحر والسفن", channel: "retail", category: "B2C", price_dzd: 7500, stock_qty: 40, min_qty: 1, merchant: "مؤسسة المرسى البحرية", stars: 4.9, wilaya: "23 - عنابة", fulfillment_mode: "none", thumb: makeThumb("البواخر والبحر", "PRD-104", "#004725", "#f57c00") },
+      { id: "p-105", code: "PRD-105", title: "الأحذية — حذاء رياضي يومي مريح", department: "الأحذية", channel: "retail", category: "B2C", price_dzd: 4800, stock_qty: 80, min_qty: 1, merchant: "معرض الأحذية", stars: 4.7, wilaya: "31 - وهران", fulfillment_mode: "none", thumb: makeThumb("الأحذية", "PRD-105", "#004725", "#f57c00") },
+      { id: "p-106", code: "PRD-106", title: "ملابس الرجال — قميص قطني ومعطف رجالي", department: "ملابس الرجال", channel: "retail", category: "B2C", price_dzd: 3600, stock_qty: 90, min_qty: 1, merchant: "أزياء الرجال", stars: 4.8, wilaya: "16 - الجزائر", fulfillment_mode: "none", thumb: makeThumb("ملابس الرجال", "PRD-106", "#006233", "#14221b") },
+      { id: "p-107", code: "PRD-107", title: "ملابس النساء — عباية ومعطف نسائي أنيق", department: "ملابس النساء", channel: "retail", category: "B2C", price_dzd: 5600, stock_qty: 60, min_qty: 1, merchant: "أزياء النساء", stars: 4.9, wilaya: "09 - البليدة", fulfillment_mode: "none", thumb: makeThumb("ملابس النساء", "PRD-107", "#d96500", "#004725") },
+      { id: "p-108", code: "PRD-108", title: "البواخر ومستلزمات البحر والسفن — بوصلة بحرية ومصباح إشارة", department: "البواخر ومستلزمات البحر والسفن", channel: "retail", category: "B2C", price_dzd: 6200, stock_qty: 35, min_qty: 1, merchant: "مؤسسة المرسى البحرية", stars: 4.9, wilaya: "06 - بجاية", fulfillment_mode: "none", thumb: makeThumb("معدات السفن", "PRD-108", "#d96500", "#006233") },
+      { id: "w-201", code: "WHL-201", title: "جملة غيار السيارات — طرد فلاتر وبواجي للورشات", department: "غيار السيارات", channel: "wholesale", category: "B2B", price_dzd: 42000, stock_qty: 50, min_qty: 1, merchant: "حانوت تاجر الجملة المستقل", stars: 5.0, wilaya: "16 - الجزائر", fulfillment_mode: "none", thumb: makeThumb("جملة غيار السيارات", "WHL-201", "#d96500", "#004725") },
+      { id: "w-202", code: "WHL-202", title: "جملة مستلزمات وأكل الحيوانات — تفاوض على الكمية والسعر", department: "مستلزمات وأكل الحيوانات", channel: "wholesale", category: "B2B", price_dzd: null, stock_qty: 80, min_qty: 1, merchant: "حانوت تاجر الجملة المستقل", stars: 4.9, wilaya: "16 - الجزائر", fulfillment_mode: "none", thumb: makeThumb("جملة أكل الحيوانات", "WHL-202 • تفاوض بالميساج", "#006233", "#d96500") },
+      { id: "w-203", code: "WHL-203", title: "جملة البواخر ومستلزمات البحر والسفن — معدات قوارب (تفاوض)", department: "البواخر ومستلزمات البحر والسفن", channel: "wholesale", category: "B2B", price_dzd: null, stock_qty: 30, min_qty: 1, merchant: "جملة المرسى البحرية", stars: 4.9, wilaya: "23 - عنابة", fulfillment_mode: "none", thumb: makeThumb("جملة البواخر والبحر", "WHL-203 • تفاوض بالميساج", "#004725", "#f57c00") },
+      { id: "w-204", code: "WHL-204", title: "جملة أواني الطبخ — طرد تجاري متنوع", department: "أواني ومستلزمات الطبخ والمطبخ", channel: "wholesale", category: "B2B", price_dzd: 54000, stock_qty: 40, min_qty: 1, merchant: "جملة الأواني والتجارة", stars: 4.8, wilaya: "19 - سطيف", fulfillment_mode: "none", thumb: makeThumb("جملة أواني الطبخ", "WHL-204", "#d96500", "#006233") }
+    ];
+
+    const DEFAULT_MERCHANTS = [
+      { id: "m-retail-1", name: "متجر التاجر المستقل", email: "retail@soukzone.dz", password: "123", phone: "0550 11 22 33", type: "retail", fee_dzd: RETAIL_FEE_DZD, plan_label: "الشهر الأول مجاني", active_access: true, banned: false },
+      { id: "m-wholesale-1", name: "حانوت تاجر الجملة المستقل", email: "wholesale@soukzone.dz", password: "123", phone: "0660 44 55 66", type: "wholesale", fee_dzd: WHOLESALE_FEE_DZD, plan_label: "الشهر الأول مجاني", active_access: true, banned: false }
+    ];
+
+    let allProducts = JSON.parse(localStorage.getItem("soukzone_products_v27") || "null") || [...INITIAL_PRODUCTS];
+    let merchantsRegistry = JSON.parse(localStorage.getItem("soukzone_merchants_v27") || "null") || [...DEFAULT_MERCHANTS];
+    let soldRecords = JSON.parse(localStorage.getItem("soukzone_sold_v27") || "[]");
+    let fulfillmentQueue = JSON.parse(localStorage.getItem("soukzone_fulfillment_v27") || "[]");
+    let wholesaleMessages = JSON.parse(localStorage.getItem("soukzone_wh_msgs_v27") || "[]");
+    let merchantRatings = JSON.parse(localStorage.getItem("soukzone_ratings_v27") || "{}");
+    let merchantSessions = JSON.parse(localStorage.getItem("soukzone_sess_v27") || '{"retail":{"shopName":"متجر التاجر المستقل","email":"retail@soukzone.dz","specialty":"مستلزمات وأكل الحيوانات","plan":"الشهر الأول مجاني"},"wholesale":{"shopName":"حانوت تاجر الجملة المستقل","email":"wholesale@soukzone.dz","specialty":"غيار السيارات","plan":"الشهر الأول مجاني"}}');
+    let cart = JSON.parse(localStorage.getItem("soukzone_cart_v27") || "[]");
+    let localOrders = JSON.parse(localStorage.getItem("soukzone_orders_v27") || "[]");
+    let adminPasscode = localStorage.getItem("soukzone_admin_pass_v27") || DEFAULT_ADMIN_PASSCODE;
+    let adminUnlocked = sessionStorage.getItem("soukzone_admin_unlocked_v27") === "true";
+    let adminShowCreds = localStorage.getItem("soukzone_admin_show_creds_v27") === "true";
+
+    let currentPage = "retail";
+    let previousPage = "retail";
+    let activeMerchantRole = "retail";
+    let currentAdminSubpage = "home";
+    let selectedCategory = "all";
+    let sbClient = null;
+    let flashTimeout = null;
+
+    function persistAll() {
+      localStorage.setItem("soukzone_products_v27", JSON.stringify(allProducts));
+      localStorage.setItem("soukzone_merchants_v27", JSON.stringify(merchantsRegistry));
+      localStorage.setItem("soukzone_sold_v27", JSON.stringify(soldRecords));
+      localStorage.setItem("soukzone_fulfillment_v27", JSON.stringify(fulfillmentQueue));
+      localStorage.setItem("soukzone_wh_msgs_v27", JSON.stringify(wholesaleMessages));
+      localStorage.setItem("soukzone_ratings_v27", JSON.stringify(merchantRatings));
+      localStorage.setItem("soukzone_sess_v27", JSON.stringify(merchantSessions));
+      localStorage.setItem("soukzone_admin_pass_v27", adminPasscode);
+      localStorage.setItem("soukzone_admin_show_creds_v27", String(adminShowCreds));
+    }
+
+    function updateMerchantIsolatedMode() {
+      const activeSub = document.querySelector("#page-merchants-hub .sub-panel.active");
+      const subId = activeSub ? activeSub.id : "";
+      const isInsideMerchantWorkspace = currentPage === "merchants-hub" && (
+        subId === "merchant-step-home" ||
+        subId === "merchant-sub-add" ||
+        subId === "merchant-sub-products" ||
+        subId === "merchant-sub-sales" ||
+        subId === "merchant-sub-messages"
+      );
+      document.body.classList.toggle("merchant-shop-isolated", Boolean(isInsideMerchantWorkspace));
+    }
+
+    function showMerchantPanel(panelId) {
+      document.querySelectorAll("#page-merchants-hub .sub-panel").forEach((el) => {
+        el.classList.toggle("active", el.id === panelId);
+      });
+      updateMerchantIsolatedMode();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function exitIsolatedMerchantShop() {
+      document.body.classList.remove("merchant-shop-isolated");
+      openMerchantsHub();
+    }
+
+    function openMerchantsHub() {
+      switchPage("merchants-hub");
+      showMerchantPanel("merchant-step-choice");
+    }
+
+    function openMerchantLoginStep(role) {
+      activeMerchantRole = role === "wholesale" ? "wholesale" : "retail";
+      switchPage("merchants-hub");
+      const reg = merchantsRegistry.find((m) => m.type === activeMerchantRole);
+      const sess = merchantSessions[activeMerchantRole] || {};
+      document.getElementById("mLoginHeading").textContent = activeMerchantRole === "wholesale"
+        ? "🏭 دخول تاجر الجملة"
+        : "🏪 دخول تاجر التجزئة";
+      document.getElementById("mGateEmail").value = (reg && reg.email) || sess.email || "";
+      document.getElementById("mGatePass").value = (reg && reg.password) || "123";
+      document.getElementById("mGateMsg").className = "msg-box";
+      showMerchantPanel("merchant-step-login");
+    }
+
+    function enterMerchantHome(role) {
+      activeMerchantRole = role === "wholesale" ? "wholesale" : "retail";
+      const reg = merchantsRegistry.find((m) => m.type === activeMerchantRole);
+      if (reg && reg.banned) {
+        const msgEl = document.getElementById("mGateMsg");
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "هذا التاجر محظور من طرف الإدارة حالياً.";
+        return;
+      }
+      if (reg) {
+        reg.banned = false;
+        reg.active_access = true;
+      }
+      persistAll();
+      renderMerchantPanels();
+      showMerchantPanel("merchant-step-home");
+    }
+
+    document.getElementById("merchantGateForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const emailVal = document.getElementById("mGateEmail").value.trim();
+      const passVal = document.getElementById("mGatePass").value;
+      const reg = merchantsRegistry.find((m) => m.type === activeMerchantRole);
+      const msgEl = document.getElementById("mGateMsg");
+
+      if (reg && reg.banned) {
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "هذا التاجر محظور من طرف الإدارة.";
+        return;
+      }
+
+      const expectedPass = (reg && reg.password) || "123";
+      if (passVal !== expectedPass && passVal !== "123") {
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "كلمة السر غير صحيحة (الافتراضية: 123 أو اضغط دخول سريع).";
+        return;
+      }
+
+      if (merchantSessions[activeMerchantRole] && emailVal) {
+        merchantSessions[activeMerchantRole].email = emailVal;
+      }
+      if (reg && emailVal) {
+        reg.email = emailVal;
+      }
+      persistAll();
+      enterMerchantHome(activeMerchantRole);
+    });
+
+    function directBypassMerchantGate() {
+      enterMerchantHome(activeMerchantRole);
+    }
+
+    async function gateSendRecovery() {
+      const emailVal = document.getElementById("mGateEmail").value.trim();
+      const msgEl = document.getElementById("mGateMsg");
+      if (!emailVal) {
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "اكتب البريد الإلكتروني أولاً لإرسال رسالة الاستعادة.";
+        return;
+      }
+      if (sbClient && sbClient.auth && typeof sbClient.auth.resetPasswordForEmail === "function") {
+        try {
+          await sbClient.auth.resetPasswordForEmail(emailVal);
+        } catch (err) {}
+      }
+      wholesaleMessages.unshift({
+        sender: "طلب استعادة كلمة السر",
+        offerTitle: `الإيميل: ${emailVal}`,
+        offerMerchant: "",
+        text: `طلب إرسال رسالة استعادة كلمة السر لحساب (${activeMerchantRole === "wholesale" ? "تاجر جملة" : "تاجر تجزئة"})`
+      });
+      persistAll();
+      msgEl.className = "msg-box msg-success";
+      msgEl.textContent = `✉️ تم إرسال طلب الاستعادة إلى ${emailVal}.`;
+    }
+
+    function openMerchantSubpage(subKey) {
+      if (subKey === "home") {
+        enterMerchantHome(activeMerchantRole);
+        return;
+      }
+      if (subKey === "add") {
+        const isWh = activeMerchantRole === "wholesale";
+        document.getElementById("mFulfillmentField").style.display = isWh ? "none" : "block";
+        document.getElementById("mProdPriceLabel").textContent = isWh
+          ? "سعر الجملة (د.ج — 0 للتفاوض)"
+          : "السعر (د.ج) *";
+      }
+      renderMerchantPanels();
+      showMerchantPanel("merchant-sub-" + subKey);
+    }
+
+    function openAdminSubpage(subName) {
+      currentAdminSubpage = subName;
+      document.querySelectorAll("#adminUnlockedWorkspace .sub-panel").forEach((el) => {
+        el.classList.toggle("active", el.id === "admin-sub-" + subName);
+      });
+      renderFulfillmentAdmin();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function syncCartFabVisibility() {
+      const fab = document.getElementById("roundCartFab");
+      if (!fab) return;
+      const showOnPage = currentPage === "retail" || currentPage === "wholesale" || currentPage === "single-product";
+      fab.classList.toggle("visible-page", showOnPage);
+    }
+
+    function setProductFulfillmentMode(productId, mode) {
+      const prod = allProducts.find((p) => String(p.id) === String(productId));
+      if (!prod) return;
+      prod.fulfillment_mode = mode;
+      persistAll();
+      renderAll();
+    }
+
+    function merchantEditProduct(productId) {
+      const prod = allProducts.find((p) => String(p.id) === String(productId));
+      if (!prod) return;
+      const nextTitle = prompt("تعديل اسم المنتوج:", prod.title);
+      if (nextTitle === null) return;
+      const nextPriceStr = prompt("تعديل السعر (د.ج) أو 0 للتفاوض:", prod.price_dzd || 0);
+      if (nextPriceStr === null) return;
+      const nextStockStr = prompt("تعديل الكمية المتوفرة:", prod.stock_qty ?? 10);
+      if (nextStockStr === null) return;
+
+      if (nextTitle.trim()) prod.title = nextTitle.trim();
+      const parsedPrice = Number(nextPriceStr);
+      prod.price_dzd = parsedPrice > 0 ? parsedPrice : null;
+      const parsedStock = Math.max(0, Number(nextStockStr));
+      prod.stock_qty = parsedStock;
+      prod.sold = parsedStock === 0;
+      persistAll();
+      renderAll();
+    }
+
+    function merchantAdjustStock(productId, delta) {
+      const prod = allProducts.find((p) => String(p.id) === String(productId));
+      if (!prod) return;
+      const nextStock = Math.max(0, Number(prod.stock_qty ?? 0) + Number(delta));
+      prod.stock_qty = nextStock;
+      prod.sold = nextStock === 0;
+      persistAll();
+      renderAll();
+    }
+
+    function toggleAdminCredsInspector() {
+      adminShowCreds = !adminShowCreds;
+      persistAll();
+      renderFulfillmentAdmin();
+    }
+
+    function adminEditMerchantCreds(merchantId) {
+      const m = merchantsRegistry.find((x) => x.id === merchantId);
+      if (!m) return;
+      const nextPass = prompt("أدخل كلمة السر الجديدة لهذا التاجر:", m.password || "123");
+      if (nextPass === null) return;
+      const nextPhone = prompt("أدخل رقم هاتف التاجر:", m.phone || "");
+      if (nextPhone === null) return;
+      if (nextPass.trim()) m.password = nextPass.trim();
+      m.phone = nextPhone.trim();
+      persistAll();
+      renderFulfillmentAdmin();
+    }
+
+    function playNewOrderChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(740, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.18);
+      } catch (e) {}
+    }
+
+    function syncAdminLockView() {
+      const lockPanel = document.getElementById("adminLockPanel");
+      const workPanel = document.getElementById("adminUnlockedWorkspace");
+      if (!lockPanel || !workPanel) return;
+      lockPanel.style.display = adminUnlocked ? "none" : "block";
+      workPanel.style.display = adminUnlocked ? "block" : "none";
+      if (adminUnlocked) openAdminSubpage(currentAdminSubpage || "home");
+    }
+
+    document.getElementById("adminUnlockForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const inputVal = document.getElementById("adminPassInput").value.trim();
+      const msgEl = document.getElementById("adminLockMsg");
+      if (inputVal === adminPasscode) {
+        adminUnlocked = true;
+        sessionStorage.setItem("soukzone_admin_unlocked_v27", "true");
+        msgEl.className = "msg-box";
+        document.getElementById("adminPassInput").value = "";
+        currentAdminSubpage = "home";
+        syncAdminLockView();
+        renderAll();
+      } else {
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "كلمة السر غير صحيحة.";
+      }
+    });
+
+    function lockAdminPanel() {
+      adminUnlocked = false;
+      currentAdminSubpage = "home";
+      sessionStorage.removeItem("soukzone_admin_unlocked_v27");
+      syncAdminLockView();
+    }
+
+    function changeAdminPasscode() {
+      const nextPass = prompt("أدخل كلمة السر الجديدة للإدارة:");
+      if (!nextPass || !nextPass.trim()) return;
+      adminPasscode = nextPass.trim();
+      persistAll();
+      alert("تم تحديث كلمة سر الإدارة بنجاح.");
+    }
+
+    function isMerchantBanned(merchantName) {
+      if (!merchantName) return false;
+      const found = merchantsRegistry.find((m) => m.name === merchantName);
+      return Boolean(found && found.banned);
+    }
+
+    function getMerchantRatingDisplay(merchantName, baseStars = 4.8) {
+      const rec = merchantRatings[merchantName];
+      if (!rec || !rec.count) {
+        const rounded = Math.max(1, Math.min(5, Math.round(Number(baseStars || 4.8))));
+        return "★".repeat(rounded) + "☆".repeat(5 - rounded) + ` (${Number(baseStars || 4.8).toFixed(1)})`;
+      }
+      const avg = rec.sum / rec.count;
+      const rounded = Math.max(1, Math.min(5, Math.round(avg)));
+      return "★".repeat(rounded) + "☆".repeat(5 - rounded) + ` (${avg.toFixed(1)} • ${rec.count} تقييم)`;
+    }
+
+    function rateMerchant(merchantName, starsValue, targetMsgId) {
+      if (!merchantRatings[merchantName]) {
+        merchantRatings[merchantName] = { sum: 0, count: 0 };
+      }
+      merchantRatings[merchantName].sum += Number(starsValue);
+      merchantRatings[merchantName].count += 1;
+      persistAll();
+      renderAll();
+
+      const msgEl = document.getElementById(targetMsgId);
+      if (msgEl) {
+        msgEl.className = "msg-box msg-success";
+        msgEl.textContent = `⭐ تم تقييم التاجر "${merchantName}" بـ ${starsValue} نجوم.`;
+      }
+    }
+
+    function populateWilayaDropdown(selectEl, includeAllOption) {
+      selectEl.innerHTML = "";
+      if (includeAllOption) {
+        const allOpt = document.createElement("option");
+        allOpt.value = "ALL";
+        allOpt.textContent = "جميع الولايات (58 ولاية)";
+        selectEl.appendChild(allOpt);
+      }
+      WILAYAS_58.forEach((w) => {
+        const opt = document.createElement("option");
+        opt.value = w;
+        opt.textContent = w;
+        if (!includeAllOption && w.startsWith("16")) opt.selected = true;
+        selectEl.appendChild(opt);
+      });
+    }
+
+    function switchPage(pageName) {
+      if (pageName !== "single-product") previousPage = pageName;
+      currentPage = pageName;
+      document.querySelectorAll(".shop-hero-btn, .merchants-hero-btn, .page-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.page === pageName);
+      });
+      document.querySelectorAll(".view-section").forEach((s) => {
+        s.classList.toggle("active", s.id === "page-" + pageName);
+      });
+
+      updateMerchantIsolatedMode();
+      syncCartFabVisibility();
+      if (pageName === "admin-fulfillment") {
+        if (adminUnlocked) currentAdminSubpage = "home";
+        syncAdminLockView();
+      }
+      if (pageName === "orders") loadOrderHistory();
+      renderAll();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      document.querySelectorAll(".icon-cat-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.cat === cat);
+      });
+      const titleEl = document.getElementById("retailSectionTitle");
+      if (titleEl) {
+        titleEl.textContent = cat === "all" ? "صفحة التسوق (4 منتجات في كل صف)" : `${cat} (4 منتجات في كل صف)`;
+      }
+      renderAll();
+    }
+
+    function openSingleProductPage(productId) {
+      const prod = allProducts.find((p) => String(p.id) === String(productId) || String(p.code) === String(productId));
+      if (!prod) return;
+
+      const hasPrice = prod.price_dzd !== null && prod.price_dzd !== undefined && Number(prod.price_dzd) > 0;
+      const priceText = hasPrice ? `${Number(prod.price_dzd).toLocaleString("fr-DZ")} د.ج` : "حسب الاتفاق / تفاوض بالميساج";
+      const dept = prod.department || "متنوع";
+      const merchant = prod.merchant || "متجر مستقل";
+      const thumb = prod.thumb || makeThumb(dept, merchant, "#006233", "#d96500");
+      const modeText = FULFILLMENT_LABELS[prod.fulfillment_mode || "none"] || FULFILLMENT_LABELS.none;
+
+      document.getElementById("singleProductContainer").innerHTML = `
+        <div class="single-product-card">
+          <div>
+            <img src="${thumb}" alt="${prod.title}" class="single-product-img" />
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <span class="product-cat-label">${dept} • الرمز: ${prod.code || prod.id}</span>
+            <h2 style="font-size: 1.35rem; color: var(--dz-green-dark);">${prod.title}</h2>
+            <p class="price-val" style="font-size: 1.25rem;">${priceText}</p>
+            <p class="product-meta">🏪 الحانوت: <strong>${merchant}</strong></p>
+            <p class="product-meta">📦 المتوفر: <strong>${Number(prod.stock_qty ?? 10)}</strong> • الخدمة: <strong>${modeText}</strong></p>
+            <div class="stars-display">${getMerchantRatingDisplay(merchant, prod.stars)}</div>
+            <p class="product-meta">📍 الولاية: <strong>${prod.wilaya || "58 ولاية"}</strong></p>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;">
+              ${hasPrice
+                ? `<button type="button" class="btn btn-orange" style="padding: 12px 20px; font-size:0.95rem;" onclick="addToCart('${prod.id}')">🛒 شراء / إضافة إلى السلة</button>`
+                : `<button type="button" class="btn btn-orange" style="padding: 12px 20px; font-size:0.95rem;" onclick="jumpToWholesaleChat('${prod.id}')">💬 تفاوض بالميساج مع التاجر</button>`
+              }
+            </div>
+
+            <div class="rating-box">
+              <strong style="font-size: 0.85rem; color: var(--dz-orange-dark);">⭐ قيّم هذا التاجر بالنجوم:</strong>
+              <div style="display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;">
+                ${[1, 2, 3, 4, 5].map((n) => `
+                  <button type="button" class="star-pick-btn" onclick="rateMerchant('${merchant.replace(/'/g, "\\'")}', ${n}, 'singleRateMsg')">${"★".repeat(n)} (${n})</button>
+                `).join("")}
+              </div>
+              <div id="singleRateMsg" class="msg-box"></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      switchPage("single-product");
+    }
+
+    function jumpToWholesaleChat(productId) {
+      switchPage("wholesale");
+      const sel = document.getElementById("chatTargetOffer");
+      if (sel) sel.value = productId;
+      document.getElementById("chatMessageText").focus();
+    }
+
+    function returnFromSingleProduct() {
+      switchPage(previousPage || "retail");
+    }
+
+    function calculateShippingFee(wilayaCodeStr, deliveryType) {
+      const code = parseInt((wilayaCodeStr || "16").split(" - ")[0], 10) || 16;
+      const southCodes = [1, 3, 7, 8, 11, 30, 32, 33, 37, 39, 45, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58];
+      let base = 500;
+      if (code === 16 || code === 9 || code === 35 || code === 42) base = 400;
+      else if (southCodes.includes(code)) base = 850;
+      else base = 600;
+
+      return deliveryType === "home" ? base + 250 : base;
+    }
+
+    function triggerCartRedFlash() {
+      const fab = document.getElementById("roundCartFab");
+      fab.classList.remove("flash-red");
+      void fab.offsetWidth;
+      fab.classList.add("flash-red");
+      if (flashTimeout) clearTimeout(flashTimeout);
+      flashTimeout = setTimeout(() => {
+        fab.classList.remove("flash-red");
+      }, 650);
+    }
+
+    function saveCart(animateFlash = false) {
+      localStorage.setItem("soukzone_cart_v27", JSON.stringify(cart));
+      renderCart();
+      if (animateFlash) triggerCartRedFlash();
+    }
+
+    function addToCart(productId) {
+      const prod = allProducts.find((p) => String(p.id) === String(productId));
+      if (!prod) return;
+      if (isMerchantBanned(prod.merchant)) {
+        alert("هذا التاجر محظور من طرف الإدارة حالياً.");
+        return;
+      }
+      if (prod.price_dzd === null || prod.price_dzd === undefined || Number(prod.price_dzd) <= 0) {
+        jumpToWholesaleChat(productId);
+        return;
+      }
+
+      const minQ = Number(prod.min_qty || 1);
+      const existing = cart.find((c) => String(c.id) === String(productId));
+      if (existing) {
+        existing.qty += 1;
+      } else {
+        cart.push({
+          id: prod.id,
+          code: prod.code || prod.id,
+          title: prod.title || prod.name,
+          price: Number(prod.price_dzd || 0),
+          qty: minQ,
+          min_qty: minQ,
+          merchant: prod.merchant || "متجر مستقل",
+          channel: prod.channel || (prod.category === "B2B" ? "wholesale" : "retail"),
+          category: prod.category || "B2C",
+          fulfillment_mode: prod.fulfillment_mode || "none",
+          thumb: prod.thumb || ""
+        });
+      }
+      saveCart(true);
+    }
+
+    function updateCartQty(index, delta) {
+      const item = cart[index];
+      if (!item) return;
+      const nextQty = item.qty + delta;
+      if (nextQty < (item.min_qty || 1)) {
+        cart.splice(index, 1);
+      } else {
+        item.qty = nextQty;
+      }
+      saveCart(false);
+    }
+
+    function renderCart() {
+      const totalItems = cart.reduce((acc, item) => acc + item.qty, 0);
+      const subTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+      const wilaya = document.getElementById("checkoutWilaya").value;
+      const delType = document.getElementById("deliveryType").value;
+      const shipping = totalItems > 0 ? calculateShippingFee(wilaya, delType) : 0;
+      const grandTotal = subTotal + shipping;
+
+      document.getElementById("roundCartCount").textContent = totalItems;
+
+      const container = document.getElementById("cartItemsContainer");
+      const checkoutSec = document.getElementById("checkoutSection");
+
+      if (cart.length === 0) {
+        container.innerHTML = `<p class="product-meta" style="padding: 16px 0;">السلة فارغة حالياً.</p>`;
+        checkoutSec.style.display = "none";
+        return;
+      }
+
+      checkoutSec.style.display = "block";
+      container.innerHTML = cart.map((item, idx) => `
+        <div class="cart-item">
+          <div>
+            <strong>${item.title}</strong>
+            <div class="product-meta">الرمز: ${item.code} • ${item.price.toLocaleString("fr-DZ")} د.ج × ${item.qty}</div>
+          </div>
+          <div class="qty-controls">
+            <button type="button" class="qty-btn" onclick="updateCartQty(${idx}, -1)">-</button>
+            <strong>${item.qty}</strong>
+            <button type="button" class="qty-btn" onclick="updateCartQty(${idx}, 1)">+</button>
+          </div>
+        </div>
+      `).join("");
+
+      document.getElementById("subTotalText").textContent = `${subTotal.toLocaleString("fr-DZ")} د.ج`;
+      document.getElementById("shippingText").textContent = `${shipping.toLocaleString("fr-DZ")} د.ج`;
+      document.getElementById("grandTotalText").textContent = `${grandTotal.toLocaleString("fr-DZ")} د.ج`;
+    }
+
+    function openCartModal() {
+      document.getElementById("checkoutMsg").className = "msg-box";
+      document.getElementById("cartModal").classList.add("open");
+      renderCart();
+    }
+
+    function closeCartModal() {
+      document.getElementById("cartModal").classList.remove("open");
+    }
+
+    function closeCartOnBackdrop(e) {
+      if (e.target.id === "cartModal") closeCartModal();
+    }
+
+    function getSortedFilteredList(channelTarget) {
+      const selectedWilaya = document.getElementById("wilayaSelect").value;
+      const term = document.getElementById("searchInput").value.trim().toLowerCase();
+
+      return allProducts.filter((item) => {
+        if (item.sold || Number(item.stock_qty ?? 1) <= 0) return false;
+        if (isMerchantBanned(item.merchant)) return false;
+        const ch = item.channel || (item.category === "B2B" ? "wholesale" : "retail");
+        if (channelTarget && ch !== channelTarget) return false;
+
+        const title = (item.title || item.name || "").toLowerCase();
+        const dept = (item.department || "").toLowerCase();
+        const code = (item.code || "").toLowerCase();
+        const merchant = (item.merchant || "").toLowerCase();
+        const wilaya = item.wilaya || "";
+
+        const matchCat = selectedCategory === "all" || (item.department === selectedCategory) || title.includes(selectedCategory.toLowerCase()) || dept.includes(selectedCategory.toLowerCase());
+        const matchWilaya = selectedWilaya === "ALL" || !wilaya || wilaya.includes(selectedWilaya.split(" - ")[1] || selectedWilaya);
+        const matchText = !term || title.includes(term) || dept.includes(term) || code.includes(term) || merchant.includes(term);
+
+        return matchCat && matchWilaya && matchText;
+      });
+    }
+
+    function renderCardItem(p) {
+      const title = p.title || p.name || "منتج SoukZone";
+      const isWholesale = (p.channel === "wholesale") || (p.category === "B2B");
+      const hasPrice = p.price_dzd !== null && p.price_dzd !== undefined && Number(p.price_dzd) > 0;
+      const priceDisplay = hasPrice ? `${Number(p.price_dzd).toLocaleString("fr-DZ")} د.ج` : "تفاوض بالميساج";
+      const dept = p.department || "متنوع";
+      const merchant = p.merchant || "متجر مستقل";
+      const thumb = p.thumb || makeThumb(dept, merchant, "#006233", "#d96500");
+
+      return `
+        <article id="product-${p.id}" class="product-card">
+          <div class="product-img-wrap" onclick="openSingleProductPage('${p.id}')">
+            <img src="${thumb}" alt="${title}" />
+            <span class="product-badge ${isWholesale ? "wholesale" : ""}">
+              ${isWholesale ? "جملة B2B" : "تسوق B2C"}
+            </span>
+          </div>
+          <div class="product-body">
+            <span class="product-cat-label">${dept}</span>
+            <span class="product-code-tag">الرمز: ${p.code || p.id} • المخزن: ${Number(p.stock_qty ?? 10)}</span>
+            <button type="button" class="product-title-link" onclick="openSingleProductPage('${p.id}')">${title}</button>
+            <div class="merchant-line">🏪 ${merchant}</div>
+            <div class="stars-display">${getMerchantRatingDisplay(merchant, p.stars)}</div>
+            <p class="product-meta">📍 ${p.wilaya || "58 ولاية"}</p>
+          </div>
+          <div class="product-footer">
+            <span class="price-val">${priceDisplay}</span>
+            ${hasPrice
+              ? `<button type="button" class="btn ${isWholesale ? "btn-orange" : "btn-primary"}" onclick="addToCart('${p.id}')">+ سلة</button>`
+              : `<button type="button" class="btn btn-orange" onclick="jumpToWholesaleChat('${p.id}')">💬 ميساج</button>`
+            }
+          </div>
+        </article>
+      `;
+    }
+
+    function activateFirstMonthFree(type) {
+      if (!merchantSessions[type]) return;
+      merchantSessions[type].plan = "الشهر الأول مجاني";
+      const reg = merchantsRegistry.find((m) => m.type === type);
+      if (reg) reg.plan_label = "الشهر الأول مجاني";
+      persistAll();
+      renderMerchantPanels();
+    }
+
+    function payMonthlySubscription(type) {
+      if (!merchantSessions[type]) return;
+      const fee = type === "wholesale" ? WHOLESALE_FEE_DZD : RETAIL_FEE_DZD;
+      merchantSessions[type].plan = `مفعّل (${fee} د.ج/شهر)`;
+      const reg = merchantsRegistry.find((m) => m.type === type);
+      if (reg) reg.plan_label = `مفعّل (${fee} د.ج/شهر)`;
+      persistAll();
+      renderMerchantPanels();
+    }
+
+    function adminToggleBanMerchant(merchantId) {
+      const m = merchantsRegistry.find((x) => x.id === merchantId);
+      if (!m) return;
+      m.banned = !m.banned;
+      m.active_access = !m.banned;
+      persistAll();
+      renderAll();
+    }
+
+    function adminDeleteMerchant(merchantId) {
+      merchantsRegistry = merchantsRegistry.filter((x) => x.id !== merchantId);
+      persistAll();
+      renderAll();
+    }
+
+    function adminSetPlan(merchantId, planLabel) {
+      const m = merchantsRegistry.find((x) => x.id === merchantId);
+      if (!m) return;
+      m.plan_label = planLabel;
+      if (merchantSessions[m.type]) {
+        merchantSessions[m.type].plan = planLabel;
+      }
+      persistAll();
+      renderMerchantPanels();
+    }
+
+    function adminOpenMerchantConsole(type) {
+      openMerchantLoginStep(type);
+    }
+
+    function deleteChatMessage(idx) {
+      wholesaleMessages.splice(idx, 1);
+      persistAll();
+      renderMerchantPanels();
+    }
+
+    function exportBackupJson() {
+      const payload = {
+        exported_at: new Date().toISOString(),
+        allProducts,
+        merchantsRegistry,
+        soldRecords,
+        fulfillmentQueue,
+        wholesaleMessages,
+        merchantRatings,
+        merchantSessions,
+        localOrders
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "soukzone-backup.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importBackupJson(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(String(reader.result || "{}"));
+          if (Array.isArray(data.allProducts)) allProducts = data.allProducts;
+          if (Array.isArray(data.merchantsRegistry)) merchantsRegistry = data.merchantsRegistry;
+          if (Array.isArray(data.soldRecords)) soldRecords = data.soldRecords;
+          if (Array.isArray(data.fulfillmentQueue)) fulfillmentQueue = data.fulfillmentQueue;
+          if (Array.isArray(data.wholesaleMessages)) wholesaleMessages = data.wholesaleMessages;
+          if (data.merchantRatings && typeof data.merchantRatings === "object") merchantRatings = data.merchantRatings;
+          if (data.merchantSessions && typeof data.merchantSessions === "object") merchantSessions = data.merchantSessions;
+          if (Array.isArray(data.localOrders)) localOrders = data.localOrders;
+          persistAll();
+          renderAll();
+          alert("تم استعادة النسخة الاحتياطية بنجاح.");
+        } catch (err) {
+          alert("ملف النسخة الاحتياطية غير صالح.");
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetDemoData() {
+      if (!confirm("هل تريد إعادة ضبط البيانات الافتراضية؟")) return;
+      allProducts = [...INITIAL_PRODUCTS];
+      merchantsRegistry = [...DEFAULT_MERCHANTS];
+      soldRecords = [];
+      fulfillmentQueue = [];
+      wholesaleMessages = [];
+      merchantRatings = {};
+      cart = [];
+      localOrders = [];
+      persistAll();
+      saveCart(false);
+      renderAll();
+    }
+
+    function setOrderStatus(idx, nextStatus) {
+      if (!fulfillmentQueue[idx]) return;
+      fulfillmentQueue[idx].status = nextStatus;
+      persistAll();
+      renderFulfillmentAdmin();
+    }
+
+    function deleteFulfillmentOrder(idx) {
+      fulfillmentQueue.splice(idx, 1);
+      persistAll();
+      renderFulfillmentAdmin();
+    }
+
+    function renderMerchantRows(list) {
+      if (!list.length) return `<p class="product-meta">لا توجد حسابات في هذا القسم حالياً.</p>`;
+      return list.map((m) => {
+        const credsLine = adminShowCreds
+          ? ` • كلمة السر: <code>${m.password || "123"}</code> • الهاتف: <strong>${m.phone || "غير محدد"}</strong>`
+          : ` • بيانات الدخول والهاتف: <em>مخفية</em>`;
+        return `
+          <div class="merchant-item-row ${m.banned ? "banned-row" : ""}">
+            <div>
+              <strong>${m.name} — الإيميل: <code>${m.email || "—"}</code></strong>
+              <div class="product-meta">
+                الاشتراك: <strong>${m.plan_label}</strong> •
+                الحالة: <strong style="color:${m.banned ? "var(--dz-red)" : "var(--dz-green)"}">${m.banned ? "محظور" : "مسموح"}</strong>
+                ${credsLine}
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" onclick="adminOpenMerchantConsole('${m.type}')">🔑 دخول لحانوت التاجر</button>
+              ${adminShowCreds ? `<button type="button" class="btn btn-outline" onclick="adminEditMerchantCreds('${m.id}')">✏️ تعديل كلمة السر/الهاتف</button>` : ""}
+              <button type="button" class="btn btn-outline" onclick="adminSetPlan('${m.id}', 'الشهر الأول مجاني')">شهر أول مجاني</button>
+              <button type="button" class="btn btn-orange" onclick="adminSetPlan('${m.id}', 'مفعّل (${m.fee_dzd} د.ج/شهر)')">تفعيل ${m.fee_dzd} د.ج</button>
+              <button type="button" class="btn ${m.banned ? "btn-primary" : "btn-ban"}" onclick="adminToggleBanMerchant('${m.id}')">${m.banned ? "✅ السماح بالدخول" : "🚫 حظر"}</button>
+              <button type="button" class="btn btn-danger" onclick="adminDeleteMerchant('${m.id}')">حذف</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderFulfillmentAdmin() {
+      const pending = fulfillmentQueue.filter((f) => f.status !== "تم التغليف والتسليم للتوصيل");
+      const shipped = fulfillmentQueue.filter((f) => f.status === "تم التغليف والتسليم للتوصيل");
+
+      const activeSubsRevenue = merchantsRegistry
+        .filter((m) => !m.banned && m.active_access && m.plan_label && m.plan_label.includes("مفعّل"))
+        .reduce((sum, m) => sum + Number(m.fee_dzd || 0), 0);
+
+      const fivePctRevenue = soldRecords.reduce((sum, s) => sum + Number(s.five_pct_fee || 0), 0);
+
+      document.getElementById("adminSubsRevenue").textContent = `${activeSubsRevenue.toLocaleString("fr-DZ")} د.ج`;
+      document.getElementById("adminFivePctRevenue").textContent = `${fivePctRevenue.toLocaleString("fr-DZ")} د.ج`;
+      document.getElementById("adminPendingPackCount").textContent = pending.length;
+      document.getElementById("adminShippedCount").textContent = shipped.length;
+
+      document.getElementById("adminRetailMerchantsList").innerHTML =
+        renderMerchantRows(merchantsRegistry.filter((m) => m.type === "retail"));
+
+      document.getElementById("adminWholesaleMerchantsList").innerHTML =
+        renderMerchantRows(merchantsRegistry.filter((m) => m.type === "wholesale"));
+
+      document.getElementById("adminAllProductsList").innerHTML = allProducts.length
+        ? allProducts.map((item) => {
+            const pLabel = item.price_dzd ? `${Number(item.price_dzd).toLocaleString("fr-DZ")} د.ج` : "تفاوض بالميساج";
+            const bannedTag = isMerchantBanned(item.merchant) ? ` • <strong style="color:var(--dz-red)">(تاجر محظور)</strong>` : "";
+            const modeLabel = FULFILLMENT_LABELS[item.fulfillment_mode || "none"] || FULFILLMENT_LABELS.none;
+            const thumb = item.thumb || makeThumb(item.department || "منتج", item.code || item.id, "#006233", "#d96500");
+            return `
+              <div class="merchant-item-row ${isMerchantBanned(item.merchant) ? "banned-row" : ""}">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${thumb}" alt="${item.title}" class="fulfillment-thumb" />
+                  <div>
+                    <strong>[${item.code || item.id}] ${item.title}</strong>
+                    <div class="product-meta">الحانوت: <strong>${item.merchant}</strong> • ${pLabel} • المخزون: <strong>${item.stock_qty}</strong> • الخاصية: <strong>${modeLabel}</strong>${bannedTag}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                  <button type="button" class="btn btn-outline" onclick="copyProductDirectLink('${item.id}')">🔗 رابط المنتوج</button>
+                  <select onchange="setProductFulfillmentMode('${item.id}', this.value)" style="padding:6px 8px;border-radius:8px;border:1px solid var(--border-soft);font-size:0.76rem;">
+                    <option value="none" ${(item.fulfillment_mode || "none") === "none" ? "selected" : ""}>عادي (بدون تغليف)</option>
+                    <option value="pack_only" ${item.fulfillment_mode === "pack_only" ? "selected" : ""}>تفعيل التغليف فقط</option>
+                    <option value="storage_pack_delivery" ${item.fulfillment_mode === "storage_pack_delivery" ? "selected" : ""}>تخزين + تغليف + توصيل</option>
+                  </select>
+                  <button type="button" class="btn btn-outline" onclick="merchantEditProduct('${item.id}')">✏️ تعديل</button>
+                  <button type="button" class="btn btn-danger" onclick="deleteMerchantProduct('${item.id}')">حذف</button>
+                </div>
+              </div>
+            `;
+          }).join("")
+        : `<p class="product-meta">لا توجد منتجات حالياً.</p>`;
+
+      const listEl = document.getElementById("fulfillmentQueueList");
+      if (!fulfillmentQueue.length) {
+        listEl.innerHTML = `<p class="product-meta">لا توجد طلبيات للمنتجات المفعّلة حالياً.</p>`;
+      } else {
+        listEl.innerHTML = fulfillmentQueue.map((f, idx) => `
+          <div class="merchant-item-row">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <img src="${f.thumb || makeThumb("منتج", f.productCode, "#006233", "#d96500")}" alt="${f.productTitle}" class="fulfillment-thumb" />
+              <div>
+                <strong>الرمز: ${f.productCode} • ${f.productTitle} (×${f.qty})</strong>
+                <div class="product-meta">الزبون: <strong>${f.buyerName}</strong> (${f.phone}) • الولاية: ${f.wilaya}</div>
+                <div class="product-meta">الحانوت: ${f.merchant} • الخاصية: <strong>${f.modeLabel}</strong> • <span class="status-tag">${f.status}</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button type="button" class="btn btn-primary" onclick="setOrderStatus(${idx}, 'تم التغليف والتسليم للتوصيل')">📦 تغليف وتسليم للتوصيل</button>
+              <button type="button" class="btn btn-outline" onclick="setOrderStatus(${idx}, 'تم التسليم للزبون')">✓ تم التسليم للزبون</button>
+              <button type="button" class="btn btn-danger" onclick="deleteFulfillmentOrder(${idx})">حذف</button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      const modList = document.getElementById("adminChatModerationList");
+      modList.innerHTML = wholesaleMessages.length
+        ? wholesaleMessages.map((m, i) => `
+            <div class="chat-msg">
+              <div>
+                <strong>${m.sender}</strong> ← <span>${m.offerTitle}</span>:
+                <div style="margin-top:4px;">${m.text}</div>
+              </div>
+              <button type="button" class="btn btn-danger" onclick="deleteChatMessage(${i})">حذف</button>
+            </div>
+          `).join("")
+        : `<p class="product-meta">لا توجد رسائل تفاوض حالياً.</p>`;
+    }
+
+    function renderMerchantPanels() {
+      const role = activeMerchantRole === "wholesale" ? "wholesale" : "retail";
+      const sess = merchantSessions[role] || {
+        shopName: role === "wholesale" ? "حانوت تاجر الجملة المستقل" : "متجر التاجر المستقل",
+        email: role === "wholesale" ? "wholesale@soukzone.dz" : "retail@soukzone.dz",
+        specialty: role === "wholesale" ? "غيار السيارات" : "مستلزمات وأكل الحيوانات",
+        plan: "الشهر الأول مجاني"
+      };
+
+      document.getElementById("mHomeTitle").textContent =
+        (role === "wholesale" ? "🏭 " : "🏪 ") + sess.shopName;
+      document.getElementById("mHomeSub").textContent =
+        `الإيميل: ${sess.email || "—"} • الاختصاص: ${sess.specialty}`;
+      document.getElementById("mStatPlan").textContent = sess.plan || "الشهر الأول مجاني";
+
+      const myActive = allProducts.filter((p) => {
+        if (p.sold || Number(p.stock_qty ?? 1) <= 0) return false;
+        const ch = p.channel || (p.category === "B2B" ? "wholesale" : "retail");
+        return ch === role;
+      });
+      const mySold = soldRecords.filter((s) => (s.channel || "retail") === role);
+      const mySoldQty = mySold.reduce((sum, s) => sum + Number(s.qty || 1), 0);
+      const myEarnings = mySold.reduce((sum, s) => sum + Number(s.net_merchant_amount || 0), 0);
+
+      document.getElementById("mStatActiveCount").textContent = myActive.length;
+      document.getElementById("mStatSoldQty").textContent = mySoldQty;
+      document.getElementById("mStatEarnings").textContent = `${myEarnings.toLocaleString("fr-DZ")} د.ج`;
+
+      document.getElementById("mProductsList").innerHTML = myActive.length
+        ? myActive.map((item) => {
+            const pLabel = item.price_dzd ? `${Number(item.price_dzd).toLocaleString("fr-DZ")} د.ج` : "تفاوض بالميساج";
+            const thumb = item.thumb || makeThumb(item.department || "منتج", item.code || item.id, role === "wholesale" ? "#d96500" : "#006233", "#004725");
+            return `
+              <div class="merchant-item-row">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${thumb}" alt="${item.title}" class="fulfillment-thumb" />
+                  <div>
+                    <strong>[${item.code || item.id}] ${item.title}</strong>
+                    <div class="product-meta">${pLabel} • المخزون: <strong>${item.stock_qty}</strong> • ${item.wilaya || ""}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                  <button type="button" class="btn btn-orange" onclick="copyProductDirectLink('${item.id}')">🔗 نسخ رابط المنتوج</button>
+                  <button type="button" class="btn btn-outline" onclick="merchantAdjustStock('${item.id}', 1)">+1</button>
+                  <button type="button" class="btn btn-outline" onclick="merchantAdjustStock('${item.id}', -1)">-1</button>
+                  <button type="button" class="btn btn-primary" onclick="merchantEditProduct('${item.id}')">✏️ موديفي</button>
+                  <button type="button" class="btn btn-danger" onclick="deleteMerchantProduct('${item.id}')">حذف</button>
+                </div>
+              </div>
+            `;
+          }).join("")
+        : `<p class="product-meta">لا توجد منتجات في حانوتك حالياً.</p>`;
+
+      document.getElementById("mSalesList").innerHTML = mySold.length
+        ? mySold.map((s) => {
+            const sThumb = s.thumb || makeThumb("مباع", s.code || s.id, "#006233", "#d96500");
+            return `
+              <div class="merchant-item-row">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <img src="${sThumb}" alt="${s.title}" class="fulfillment-thumb" />
+                  <div>
+                    <strong>الرمز: ${s.code} • ${s.title} (×${s.qty})</strong>
+                    <div class="product-meta">الزبون: <strong>${s.buyerName || "زبون"}</strong> (${s.wilaya || ""}) • الصافي: <strong>${Number(s.net_merchant_amount || 0).toLocaleString("fr-DZ")} د.ج</strong></div>
+                  </div>
+                </div>
+                <span class="status-tag">تم البيع</span>
+              </div>
+            `;
+          }).join("")
+        : `<p class="product-meta">لم يتم بيع أي منتوج بعد.</p>`;
+
+      const myMsgs = wholesaleMessages.filter((m) => !m.offerMerchant || m.offerMerchant === sess.shopName);
+      document.getElementById("mMessagesList").innerHTML = myMsgs.length
+        ? myMsgs.map((m) => `
+            <div class="chat-msg">
+              <div>
+                <strong>${m.sender}</strong> ← <span>${m.offerTitle}</span>:
+                <div style="margin-top:4px;">${m.text}</div>
+              </div>
+            </div>
+          `).join("")
+        : `<p class="product-meta">لا توجد رسائل واردة لحانوتك حالياً.</p>`;
+
+      const chatSelect = document.getElementById("chatTargetOffer");
+      if (chatSelect) {
+        const wOffers = allProducts.filter((p) => (p.channel === "wholesale" || p.category === "B2B") && !p.sold && !isMerchantBanned(p.merchant));
+        chatSelect.innerHTML = wOffers.map((o) => `<option value="${o.id}">${o.title} (${o.merchant})</option>`).join("");
+      }
+
+      const chatList = document.getElementById("wholesaleChatList");
+      if (chatList) {
+        chatList.innerHTML = wholesaleMessages.length
+          ? wholesaleMessages.map((m) => `
+              <div class="chat-msg">
+                <div>
+                  <strong>${m.sender}</strong> ← <span>${m.offerTitle}</span>:
+                  <div style="margin-top:4px;">${m.text}</div>
+                </div>
+              </div>
+            `).join("")
+          : `<p class="product-meta">لا توجد رسائل تفاوض بعد.</p>`;
+      }
+
+      renderFulfillmentAdmin();
+    }
+
+    function deleteMerchantProduct(productId) {
+      allProducts = allProducts.filter((p) => String(p.id) !== String(productId));
+      persistAll();
+      renderAll();
+    }
+
+    document.getElementById("unifiedAddProductForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const role = activeMerchantRole === "wholesale" ? "wholesale" : "retail";
+      const reg = merchantsRegistry.find((m) => m.type === role);
+      if (reg && reg.banned) {
+        alert("حساب التاجر محظور من الإدارة.");
+        return;
+      }
+      const sess = merchantSessions[role] || {
+        shopName: role === "wholesale" ? "حانوت تاجر الجملة المستقل" : "متجر التاجر المستقل",
+        specialty: role === "wholesale" ? "غيار السيارات" : "مستلزمات وأكل الحيوانات"
+      };
+      const rawCode = document.getElementById("mProdCode").value.trim();
+      const code = rawCode || generateAutoCode(role === "wholesale" ? "WHL" : "PRD");
+      const title = document.getElementById("mProdTitle").value.trim();
+      const rawPrice = Number(document.getElementById("mProdPrice").value || 0);
+      const price = role === "wholesale" ? (rawPrice > 0 ? rawPrice : null) : Math.max(1, rawPrice);
+      const stockQty = Math.max(1, Number(document.getElementById("mProdStock").value || 10));
+      const wilaya = document.getElementById("mProdWilaya").value;
+      const fulfillmentMode = role === "wholesale" ? "none" : document.getElementById("mProdFulfillment").value;
+
+      const newProd = {
+        id: `${role}-${Date.now()}`,
+        code,
+        title,
+        department: sess.specialty,
+        channel: role,
+        category: role === "wholesale" ? "B2B" : "B2C",
+        price_dzd: price,
+        stock_qty: stockQty,
+        min_qty: 1,
+        merchant: sess.shopName,
+        stars: 4.9,
+        wilaya,
+        fulfillment_mode: fulfillmentMode,
+        thumb: makeThumb(sess.specialty, code, role === "wholesale" ? "#d96500" : "#006233", "#004725")
+      };
+
+      allProducts.unshift(newProd);
+      persistAll();
+      e.target.reset();
+      document.getElementById("mProdStock").value = "30";
+      renderAll();
+
+      const msgEl = document.getElementById("mAddMsg");
+      msgEl.className = "msg-box msg-success";
+      msgEl.textContent = `✅ تمت إضافة المنتوج بالرمز (${code}) بنجاح، ورابطه المباشر جاهز في «صفحة منتجاتي وروابطها».`;
+    });
+
+    document.getElementById("adminAddMerchantForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = document.getElementById("admNewMerchantName").value.trim();
+      const email = document.getElementById("admNewMerchantEmail").value.trim();
+      const password = document.getElementById("admNewMerchantPassword").value.trim() || "123";
+      const phone = document.getElementById("admNewMerchantPhone").value.trim();
+      const type = document.getElementById("admNewMerchantType").value;
+      const banned = document.getElementById("admNewMerchantStatus").value === "banned";
+      if (!name || !email) return;
+
+      merchantsRegistry.unshift({
+        id: "m-" + Date.now(),
+        name,
+        email,
+        password,
+        phone,
+        type,
+        fee_dzd: type === "wholesale" ? WHOLESALE_FEE_DZD : RETAIL_FEE_DZD,
+        plan_label: "الشهر الأول مجاني",
+        active_access: !banned,
+        banned
+      });
+      persistAll();
+      e.target.reset();
+      renderAll();
+    });
+
+    document.getElementById("adminAddProductForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const rawCode = document.getElementById("admProdCode").value.trim();
+      const code = rawCode || generateAutoCode("ADM");
+      const title = document.getElementById("admProdTitle").value.trim();
+      const dept = document.getElementById("admProdDept").value;
+      const ch = document.getElementById("admProdChannel").value;
+      const rawPrice = Number(document.getElementById("admProdPrice").value || 0);
+      const stockQty = Math.max(1, Number(document.getElementById("admProdStock").value || 10));
+      const merchant = document.getElementById("admProdMerchant").value.trim() || "إدارة SoukZone";
+      const wilaya = document.getElementById("admProdWilaya").value;
+      const fulfillmentMode = document.getElementById("admProdFulfillment").value;
+
+      allProducts.unshift({
+        id: "adm-" + Date.now(),
+        code,
+        title,
+        department: dept,
+        channel: ch,
+        category: ch === "wholesale" ? "B2B" : "B2C",
+        price_dzd: rawPrice > 0 ? rawPrice : null,
+        stock_qty: stockQty,
+        min_qty: 1,
+        merchant,
+        stars: 5.0,
+        wilaya,
+        fulfillment_mode: fulfillmentMode,
+        thumb: makeThumb(dept, code, ch === "wholesale" ? "#d96500" : "#006233", "#004725")
+      });
+      persistAll();
+      e.target.reset();
+      document.getElementById("admProdPrice").value = "2500";
+      document.getElementById("admProdStock").value = "50";
+      document.getElementById("admProdMerchant").value = "إدارة SoukZone";
+      renderAll();
+    });
+
+    document.getElementById("wholesaleChatForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const sender = document.getElementById("chatSenderName").value.trim();
+      const offerId = document.getElementById("chatTargetOffer").value;
+      const text = document.getElementById("chatMessageText").value.trim();
+      if (!sender || !text) return;
+
+      const offer = allProducts.find((p) => String(p.id) === String(offerId));
+      wholesaleMessages.unshift({
+        sender,
+        offerTitle: offer ? `${offer.title} (${offer.merchant})` : "عرض جملة",
+        offerMerchant: offer ? offer.merchant : "",
+        text
+      });
+      persistAll();
+      document.getElementById("chatMessageText").value = "";
+      renderMerchantPanels();
+    });
+
+    function renderAll() {
+      const retailItems = getSortedFilteredList("retail");
+      document.getElementById("retailCountLabel").textContent = `${retailItems.length} منتج`;
+      document.getElementById("retailGrid").innerHTML = retailItems.length
+        ? retailItems.map(renderCardItem).join("")
+        : `<div class="panel-card"><p class="product-meta">لا توجد منتجات في هذا القسم حالياً.</p></div>`;
+
+      const wholesaleItems = getSortedFilteredList("wholesale");
+      document.getElementById("wholesaleCountLabel").textContent = `${wholesaleItems.length} عرض جملة`;
+      document.getElementById("wholesaleGrid").innerHTML = wholesaleItems.length
+        ? wholesaleItems.map(renderCardItem).join("")
+        : `<div class="panel-card"><p class="product-meta">لا توجد عروض جملة حالياً.</p></div>`;
+
+      renderMerchantPanels();
+    }
+
+    async function initSupabase() {
+      const statusEl = document.getElementById("dbStatus");
+      if (window.supabase) {
+        try {
+          sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+          statusEl.textContent = "متصل بـ Supabase";
+        } catch (err) {
+          statusEl.textContent = "جاهز للتشغيل";
+        }
+      }
+      renderAll();
+      checkDirectProductParam();
+    }
+
+    function checkDirectProductParam() {
+      const params = new URLSearchParams(window.location.search);
+      const targetProdId = params.get("product") || params.get("p");
+      if (targetProdId) {
+        openSingleProductPage(targetProdId);
+      }
+    }
+
+    async function submitCartOrder() {
+      const msgEl = document.getElementById("checkoutMsg");
+      msgEl.className = "msg-box";
+
+      const buyerName = document.getElementById("checkoutName").value.trim();
+      const buyerPhone = document.getElementById("checkoutPhone").value.trim();
+      const wilaya = document.getElementById("checkoutWilaya").value;
+      const delType = document.getElementById("deliveryType").value;
+
+      if (!buyerName || !buyerPhone) {
+        msgEl.className = "msg-box msg-error";
+        msgEl.textContent = "يرجى إدخال الاسم واللقب ورقم الهاتف.";
+        return;
+      }
+
+      const subTotal = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+      const shipping = calculateShippingFee(wilaya, delType);
+      const grandTotal = subTotal + shipping;
+      const summaryItems = cart.map((i) => `[${i.code}] ${i.title} (×${i.qty})`).join(" + ");
+
+      cart.forEach((cartItem) => {
+        const prod = allProducts.find((p) => String(p.id) === String(cartItem.id));
+        const mode = (prod && prod.fulfillment_mode) || cartItem.fulfillment_mode || "none";
+        const ch = cartItem.channel || "retail";
+        const itemThumb = cartItem.thumb || (prod && prod.thumb) || makeThumb("منتج", cartItem.code || cartItem.id, "#006233", "#d96500");
+
+        const lineTotal = Number(cartItem.price || 0) * Number(cartItem.qty || 1);
+        const fivePctFee = mode === "storage_pack_delivery" ? Math.round(lineTotal * FULFILLMENT_PCT) : 0;
+        const netMerchantAmount = lineTotal - fivePctFee;
+
+        if (prod) {
+          prod.stock_qty = Math.max(0, Number(prod.stock_qty ?? 1) - Number(cartItem.qty || 1));
+          if (prod.stock_qty === 0) prod.sold = true;
+        }
+
+        soldRecords.unshift({
+          id: cartItem.id,
+          code: cartItem.code || cartItem.id,
+          title: cartItem.title,
+          qty: cartItem.qty,
+          gross_amount: lineTotal,
+          five_pct_fee: fivePctFee,
+          net_merchant_amount: netMerchantAmount,
+          channel: ch,
+          merchant: cartItem.merchant || "",
+          buyerName,
+          wilaya,
+          thumb: itemThumb
+        });
+
+        if (mode === "pack_only" || mode === "storage_pack_delivery") {
+          fulfillmentQueue.unshift({
+            buyerName,
+            phone: buyerPhone,
+            wilaya,
+            productCode: cartItem.code || cartItem.id,
+            productTitle: cartItem.title,
+            qty: cartItem.qty,
+            thumb: itemThumb,
+            merchant: cartItem.merchant || "متجر مستقل",
+            modeLabel: FULFILLMENT_LABELS[mode],
+            status: mode === "pack_only" ? "قيد التغليف والتسليم للتوصيل" : "قيد التخزين والتغليف والتوصيل"
+          });
+        }
+      });
+      persistAll();
+      playNewOrderChime();
+
+      const orderPayload = {
+        buyer_name: buyerName,
+        phone: buyerPhone,
+        product_name: summaryItems,
+        quantity: cart.reduce((acc, item) => acc + item.qty, 0),
+        wilaya: wilaya,
+        mode: `${delType === "home" ? "توصيل للمنزل" : "مكتب الشحن"} | الإجمالي: ${grandTotal} د.ج`
+      };
+
+      if (sbClient) {
+        try {
+          await sbClient.from("orders").insert([orderPayload]);
+        } catch (err) {}
+      }
+
+      localOrders.unshift({ ...orderPayload, status: "قيد التأكيد", merchants: cart.map((c) => c.merchant) });
+      localStorage.setItem("soukzone_orders_v27", JSON.stringify(localOrders));
+      document.getElementById("trackPhoneInput").value = buyerPhone;
+
+      cart = [];
+      saveCart(false);
+      renderAll();
+
+      msgEl.className = "msg-box msg-success";
+      msgEl.textContent = `✅ تم تأكيد الطلبية بنجاح! المجموع: ${grandTotal.toLocaleString("fr-DZ")} د.ج`;
+    }
+
+    async function loadOrderHistory() {
+      const phone = document.getElementById("trackPhoneInput").value.trim();
+      const listEl = document.getElementById("ordersList");
+      let results = [...localOrders];
+
+      if (sbClient && phone) {
+        try {
+          const { data, error } = await sbClient
+            .from("orders")
+            .select("*")
+            .ilike("phone", `%${phone}%`)
+            .order("id", { ascending: false })
+            .limit(20);
+          if (!error && Array.isArray(data) && data.length > 0) {
+            results = data;
+          }
+        } catch (e) {}
+      } else if (phone) {
+        results = results.filter((o) => (o.phone || "").includes(phone));
+      }
+
+      if (!results.length) {
+        listEl.innerHTML = `<p class="product-meta">لا توجد طلبيات مسجلة لهذا الرقم حالياً.</p>`;
+        return;
+      }
+
+      listEl.innerHTML = results.map((o, i) => {
+        const mName = (o.merchants && o.merchants[0]) || "التاجر";
+        return `
+          <div class="order-history-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <strong>${o.buyer_name || "زبون"} — ${o.phone || ""}</strong>
+              <span class="status-tag">${o.status || "مسجلة"}</span>
+            </div>
+            <div class="product-meta">المنتجات: ${o.product_name}</div>
+            <div class="product-meta">الولاية: ${o.wilaya || ""} • ${o.mode || ""}</div>
+            <div style="margin-top: 8px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              <span style="font-size: 0.78rem; font-weight: 800; color: var(--dz-orange-dark);">قيّم التاجر (${mName}):</span>
+              ${[1, 2, 3, 4, 5].map((n) => `
+                <button type="button" class="star-pick-btn" onclick="rateMerchant('${mName.replace(/'/g, "\\'")}', ${n}, 'orderRateMsg-${i}')">${"★".repeat(n)} (${n})</button>
+              `).join("")}
+            </div>
+            <div id="orderRateMsg-${i}" class="msg-box"></div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    populateWilayaDropdown(document.getElementById("wilayaSelect"), true);
+    populateWilayaDropdown(document.getElementById("mProdWilaya"), false);
+    populateWilayaDropdown(document.getElementById("admProdWilaya"), false);
+    populateWilayaDropdown(document.getElementById("checkoutWilaya"), false);
+
+    document.getElementById("wilayaSelect").addEventListener("change", renderAll);
+    document.getElementById("searchInput").addEventListener("input", renderAll);
+
+    updateMerchantIsolatedMode();
+    syncCartFabVisibility();
+    syncAdminLockView();
+    renderCart();
+    initSupabase();
+  </script>
+</body>
+</html>
